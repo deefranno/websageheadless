@@ -128,11 +128,12 @@ final class PostsRoutesTest extends ApiTestCase {
 		$data = $this->get( '/websage/v1/routes' )->get_data()['data'];
 
 		$this->assertSame( self::shape( self::fixture( 'routes' )['data'] ), self::shape( $data ) );
-		$this->assertSame( array( '/', '/about', '/about/team', '/blog', '/blog/hello' ), array_column( $data['items'], 'path' ) );
-		$this->assertSame( array( 'page', 'page', 'page', 'index', 'post' ), array_column( $data['items'], 'kind' ) );
+		$this->assertSame( array( '/', '/about', '/about/team', '/hidden', '/blog', '/blog/hello' ), array_column( $data['items'], 'path' ) );
+		$this->assertSame( array( 'page', 'page', 'page', 'page', 'index', 'post' ), array_column( $data['items'], 'kind' ) );
+		$this->assertSame( array( false, false, false, true, false, false ), array_column( $data['items'], 'noindex' ) );
 
 		$paged = $this->get( '/websage/v1/routes?perPage=2&page=2' )->get_data()['data'];
-		$this->assertSame( array( '/about/team', '/blog' ), array_column( $paged['items'], 'path' ) );
+		$this->assertSame( array( '/about/team', '/hidden' ), array_column( $paged['items'], 'path' ) );
 		$this->assertSame( 3, $paged['pagination']['totalPages'] );
 	}
 

@@ -19,9 +19,9 @@ use WP_REST_Request;
 use WP_REST_Response;
 
 /**
- * Every public, indexable URL with its modified date: pages, posts and the
- * synthetic /blog index. Used for the sitemap, static params and the
- * frontend's 404 check.
+ * Every public URL with its modified date and noindex flag: pages, posts
+ * and the synthetic /blog index. Used for the sitemap (indexable entries),
+ * static params and the frontend's 404 check (all entries).
  */
 final class RoutesController {
 
@@ -81,7 +81,7 @@ final class RoutesController {
 	/**
 	 * All routes, front page first.
 	 *
-	 * @return list<array{path: string, kind: string, modified: string}>
+	 * @return list<array{path: string, kind: string, modified: string, noindex: bool}>
 	 * @throws ContentException When no published front page is configured.
 	 */
 	public static function all(): array {
@@ -97,7 +97,7 @@ final class RoutesController {
 
 		foreach ( $pages as $page ) {
 			$path = Paths::for_post( $page );
-			if ( null === $path || Seo::noindex( $page ) || ! self::ancestors_public( $page ) ) {
+			if ( null === $path || ! self::ancestors_public( $page ) ) {
 				continue;
 			}
 			// Paths owned by the frontend (e.g. /blog) cannot be CMS pages.
@@ -108,6 +108,7 @@ final class RoutesController {
 				'path'     => $path,
 				'kind'     => 'page',
 				'modified' => Values::timestamp( $page->post_modified_gmt ),
+				'noindex'  => Seo::noindex( $page ),
 			);
 			$items[] = $item;
 		}
@@ -128,16 +129,19 @@ final class RoutesController {
 			'path'     => '/blog',
 			'kind'     => 'index',
 			'modified' => Values::timestamp( $latest ),
+			'noindex'  => false,
 		);
 
 		foreach ( $posts as $post ) {
-			if ( Seo::noindex( $post ) ) {
+			$path = Paths::for_post( $post );
+			if ( null === $path ) {
 				continue;
 			}
 			$items[] = array(
-				'path'     => (string) Paths::for_post( $post ),
+				'path'     => $path,
 				'kind'     => 'post',
 				'modified' => Values::timestamp( $post->post_modified_gmt ),
+				'noindex'  => Seo::noindex( $post ),
 			);
 		}
 		return $items;

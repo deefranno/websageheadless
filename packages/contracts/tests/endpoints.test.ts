@@ -75,6 +75,7 @@ describe('posts and routes', () => {
         path: '/',
         kind: 'attachment',
         modified: '2026-10-16T12:00:00Z',
+        noindex: false,
       }),
     ).toThrow();
   });

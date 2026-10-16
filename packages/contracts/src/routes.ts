@@ -7,6 +7,8 @@ export const RouteItemSchema = z.strictObject({
   path: PagePathSchema,
   kind: z.enum(['page', 'post', 'index']),
   modified: TimestampSchema,
+  /** Exists but is hidden from search: kept out of the sitemap, not a 404. */
+  noindex: z.boolean(),
 });
 
 export const RouteListSchema = z.strictObject({

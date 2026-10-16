@@ -43,7 +43,7 @@ describe('cache policy', () => {
 
     await getPage('/about/team');
 
-    expect(cache.cacheTag).toHaveBeenCalledWith('page:/about/team');
+    expect(cache.cacheTag).toHaveBeenCalledWith('page:/about/team', 'site');
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
       'https://cms.example.com/wp-json/websage/v1/pages/about/team',
     );
