@@ -12,8 +12,8 @@ namespace WebSage\HeadlessCore\Rest;
 use WP_REST_Server;
 
 /**
- * Registers every public read route. Write routes arrive in later phases and
- * must use a real permission callback, never public_read().
+ * Every websage/v1 route. Read routes that only return published content
+ * use public_read(); everything else has a real permission callback.
  */
 final class Routes {
 
@@ -23,13 +23,15 @@ final class Routes {
 	 * `rest_api_init` callback.
 	 */
 	public static function register(): void {
+		$public = array( self::class, 'public_read' );
+
 		register_rest_route(
 			self::NAMESPACE,
 			'/site',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( SiteController::class, 'show' ),
-				'permission_callback' => array( self::class, 'public_read' ),
+				'permission_callback' => $public,
 			)
 		);
 		register_rest_route(
@@ -38,7 +40,45 @@ final class Routes {
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( PagesController::class, 'show' ),
-				'permission_callback' => array( self::class, 'public_read' ),
+				'permission_callback' => $public,
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/posts',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( PostsController::class, 'index' ),
+				'permission_callback' => $public,
+				'args'                => PostsController::list_args(),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/posts/(?P<slug>[^/]+)',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( PostsController::class, 'show' ),
+				'permission_callback' => $public,
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/routes',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( RoutesController::class, 'index' ),
+				'permission_callback' => $public,
+				'args'                => RoutesController::args(),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
+			'/preview/(?P<id>\d+)',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( PreviewController::class, 'show' ),
+				'permission_callback' => array( PreviewController::class, 'authorize' ),
 			)
 		);
 	}

@@ -8,5 +8,7 @@ parameters:
     - websage-headless-core.php
     - uninstall.php
     - src
+  scanDirectories:
+    - vendor/cmb2/cmb2/includes
   bootstrapFiles:
     - tests/phpstan-constants.php

@@ -10,9 +10,20 @@ declare(strict_types=1);
 namespace WebSage\HeadlessCore;
 
 use DomainException;
+use WebSage\HeadlessCore\Admin\Diagnostics;
 use WebSage\HeadlessCore\Blocks\Registry;
+use WebSage\HeadlessCore\Content\PostTypes;
+use WebSage\HeadlessCore\Fields\SeoMetabox;
+use WebSage\HeadlessCore\Fields\SettingsPage;
+use WebSage\HeadlessCore\Fields\TestimonialMetabox;
+use WebSage\HeadlessCore\Preview\AdminLink;
 use WebSage\HeadlessCore\Rest\Errors;
 use WebSage\HeadlessCore\Rest\Routes;
+use WebSage\HeadlessCore\Revalidation\Dispatcher;
+use WebSage\HeadlessCore\Revalidation\Events;
+use WebSage\HeadlessCore\Security\Cors;
+use WebSage\HeadlessCore\Security\Hardening;
+use WebSage\HeadlessCore\Settings\Settings;
 use WebSage\HeadlessCore\Support\Requirements;
 
 /**
@@ -20,8 +31,8 @@ use WebSage\HeadlessCore\Support\Requirements;
  */
 final class Plugin {
 
-	public const SETTINGS_OPTION         = 'wsh_settings';
-	public const SETTINGS_SCHEMA_VERSION = 1;
+	public const SETTINGS_OPTION         = Settings::OPTION;
+	public const SETTINGS_SCHEMA_VERSION = Settings::SCHEMA_VERSION;
 
 	/**
 	 * Registers runtime hooks, unless the environment is unsupported.
@@ -42,9 +53,30 @@ final class Plugin {
 			return;
 		}
 
+		add_action( 'init', array( PostTypes::class, 'register' ) );
 		add_action( 'init', array( Registry::class, 'register' ) );
+		add_action( 'init', array( Settings::class, 'migrate' ), 5 );
+		add_filter( 'use_block_editor_for_post_type', array( PostTypes::class, 'use_block_editor' ), 10, 2 );
+		add_filter( 'allowed_block_types_all', array( Registry::class, 'allowed' ), 10, 2 );
+
+		add_action( 'cmb2_admin_init', array( SettingsPage::class, 'register' ) );
+		add_action( 'cmb2_admin_init', array( SeoMetabox::class, 'register' ) );
+		add_action( 'cmb2_admin_init', array( TestimonialMetabox::class, 'register' ) );
+		add_action( 'cmb2_options-page_process_fields_' . SettingsPage::BOX_ID, array( SettingsPage::class, 'capture_before' ) );
+		add_action( 'cmb2_save_options-page_fields_' . SettingsPage::BOX_ID, array( SettingsPage::class, 'enforce_contrast' ) );
+		add_action( 'admin_notices', array( SettingsPage::class, 'notices' ) );
+		add_action( 'admin_enqueue_scripts', array( SettingsPage::class, 'assets' ) );
+		Diagnostics::register();
+
 		add_action( 'rest_api_init', array( Routes::class, 'register' ) );
 		add_filter( 'rest_post_dispatch', array( Errors::class, 'adapt' ), 10, 3 );
+		add_filter( 'rest_pre_dispatch', array( PostTypes::class, 'guard_library_rest' ), 10, 3 );
+		add_filter( 'rest_pre_serve_request', array( Cors::class, 'close' ), 9, 3 );
+
+		Events::register();
+		Dispatcher::register();
+		AdminLink::register();
+		add_action( 'init', array( Hardening::class, 'register' ) );
 	}
 
 	/**
@@ -57,8 +89,6 @@ final class Plugin {
 			deactivate_plugins( plugin_basename( WSH_PLUGIN_FILE ) );
 			wp_die( esc_html( $e->getMessage() ), esc_html__( 'Plugin activation failed', 'websage-headless' ), array( 'back_link' => true ) );
 		}
-
-		// Versioned settings container; later releases migrate from schema_version.
-		add_option( self::SETTINGS_OPTION, array( 'schema_version' => self::SETTINGS_SCHEMA_VERSION ), '', false );
+		Settings::migrate();
 	}
 }

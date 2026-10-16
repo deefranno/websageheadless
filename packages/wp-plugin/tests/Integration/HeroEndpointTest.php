@@ -254,7 +254,7 @@ final class HeroEndpointTest extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_unknown_blocks_expose_only_the_section_envelope(): void {
+	public function test_unknown_blocks_keep_only_the_envelope_and_core_blocks_become_content(): void {
 		$this->page(
 			array(
 				'post_name'    => 'mixed',
@@ -273,6 +273,7 @@ final class HeroEndpointTest extends WP_UnitTestCase {
 					'type'          => 'core-content',
 					'schemaVersion' => 1,
 					'key'           => '1',
+					'html'          => '<p>Hi</p>',
 				),
 			),
 			$this->get( '/websage/v1/pages/mixed' )->get_data()['data']['sections']

@@ -33,3 +33,8 @@ define( 'WPLANG', '' );
 define( 'WP_DEBUG', true );
 
 define( 'WSH_FRONTEND_ORIGIN', 'https://www.example.com' );
+
+// Test-only secrets (never reuse outside the disposable test database).
+define( 'WSH_SERVER_API_SECRET', 'test-server-api-secret-000000000000000' );
+define( 'WSH_PREVIEW_SECRET', 'test-preview-secret-0000000000000000000' );
+define( 'WSH_REVALIDATION_SECRET', 'test-revalidation-secret-00000000000000' );

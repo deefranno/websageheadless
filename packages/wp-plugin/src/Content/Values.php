@@ -16,6 +16,44 @@ final class Values {
 
 	public const TEXT_MAX      = 500;
 	public const RICH_TEXT_MAX = 20000;
+	public const BODY_HTML_MAX = 100000;
+
+	/** Block-level markup permitted in long-form content. */
+	private const BODY_TAGS = array(
+		'p'          => array(),
+		'br'         => array(),
+		'h2'         => array(),
+		'h3'         => array(),
+		'h4'         => array(),
+		'h5'         => array(),
+		'h6'         => array(),
+		'ul'         => array(),
+		'ol'         => array(
+			'start'    => true,
+			'reversed' => true,
+		),
+		'li'         => array(),
+		'strong'     => array(),
+		'em'         => array(),
+		'b'          => array(),
+		'i'          => array(),
+		'code'       => array(),
+		'blockquote' => array(),
+		'cite'       => array(),
+		'figure'     => array(),
+		'figcaption' => array(),
+		'img'        => array(
+			'src'    => true,
+			'alt'    => true,
+			'width'  => true,
+			'height' => true,
+		),
+		'a'          => array(
+			'href'   => true,
+			'rel'    => true,
+			'target' => true,
+		),
+	);
 
 	/** Inline markup permitted in RichText values. */
 	private const RICH_TEXT_TAGS = array(
@@ -61,7 +99,38 @@ final class Values {
 		if ( mb_strlen( $value ) > self::RICH_TEXT_MAX ) {
 			throw ContentException::too_large( "{$field} exceeds " . self::RICH_TEXT_MAX . ' characters' );
 		}
-		return trim( wp_kses( $value, self::RICH_TEXT_TAGS, array( 'https', 'mailto', 'tel' ) ) );
+		return trim( wp_kses( self::drop_code( $value ), self::RICH_TEXT_TAGS, array( 'https', 'mailto', 'tel' ) ) );
+	}
+
+	/**
+	 * Plain text from a library item, clipped to the Text limit instead of
+	 * failing the whole page (library items are edited outside the page).
+	 *
+	 * @param mixed $value Stored value.
+	 */
+	public static function text_clipped( mixed $value ): string {
+		$text = is_string( $value ) ? trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $value ) ) ?? '' ) : '';
+		return mb_substr( $text, 0, self::TEXT_MAX );
+	}
+
+	/**
+	 * Allowlisted block HTML, bounded by the BodyHtml primitive. Level-one
+	 * headings become h2 so the page keeps a single h1.
+	 *
+	 * @param mixed  $value Stored HTML.
+	 * @param string $field Field name for diagnostics.
+	 * @throws ContentException When too long.
+	 */
+	public static function body_html( mixed $value, string $field ): string {
+		if ( ! is_string( $value ) ) {
+			return '';
+		}
+		if ( strlen( $value ) > self::BODY_HTML_MAX ) {
+			throw ContentException::too_large( "{$field} exceeds " . self::BODY_HTML_MAX . ' bytes' );
+		}
+		$value = preg_replace( array( '/<h1(\s|>)/i', '/<\/h1>/i' ), array( '<h2$1', '</h2>' ), $value ) ?? '';
+		$html  = trim( wp_kses( self::drop_code( $value ), self::BODY_TAGS, array( 'https', 'mailto', 'tel' ) ) );
+		return strlen( $html ) > self::BODY_HTML_MAX ? throw ContentException::too_large( "{$field} exceeds " . self::BODY_HTML_MAX . ' bytes' ) : $html;
 	}
 
 	/**
@@ -150,6 +219,16 @@ final class Values {
 	public static function timestamp( string $gmt_datetime ): string {
 		$time = strtotime( $gmt_datetime . ' UTC' );
 		return gmdate( 'Y-m-d\TH:i:s\Z', false === $time ? 0 : $time );
+	}
+
+	/**
+	 * Removes script and style elements with their contents; kses alone
+	 * strips the tags but would leave the code visible as text.
+	 *
+	 * @param string $html HTML.
+	 */
+	private static function drop_code( string $html ): string {
+		return preg_replace( '#<(script|style)\b[^>]*>.*?</\1\s*>#is', '', $html ) ?? '';
 	}
 
 	/**

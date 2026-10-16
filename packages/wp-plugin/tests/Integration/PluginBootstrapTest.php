@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace WebSage\HeadlessCore\Tests\Integration;
 
 use WebSage\HeadlessCore\Plugin;
-use WebSage\HeadlessCore\Rest\SiteController;
+use WebSage\HeadlessCore\Settings\Settings;
 use WebSage\HeadlessCore\Support\Cmb2Status;
 use WP_Block_Type_Registry;
 use WP_REST_Request;
@@ -50,7 +50,7 @@ final class PluginBootstrapTest extends WP_UnitTestCase {
 		$data = $response->get_data();
 		$this->assertSame( self::key_shape( $fixture ), self::key_shape( $data ) );
 		$this->assertSame( 'Acme & Sons', $data['data']['name'] );
-		$this->assertSame( SiteController::DEFAULT_TOKENS, $data['data']['branding']['tokens'] );
+		$this->assertSame( Settings::DEFAULT_TOKENS, $data['data']['branding']['tokens'] );
 	}
 
 	public function test_bundled_cmb2_wins_version_negotiation_in_this_load_order(): void {

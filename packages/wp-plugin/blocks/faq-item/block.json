@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "websage/faq-item",
+  "version": "1.0.0",
+  "title": "Question",
+  "category": "design",
+  "icon": "editor-help",
+  "description": "One question and answer.",
+  "textdomain": "websage-headless",
+  "attributes": {
+    "schemaVersion": {
+      "type": "integer"
+    },
+    "question": {
+      "type": "string",
+      "default": ""
+    },
+    "answer": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "supports": {
+    "html": false,
+    "reusable": false
+  },
+  "editorScript": "file:./index.js",
+  "parent": ["websage/faq"]
+}

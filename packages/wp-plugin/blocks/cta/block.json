@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "websage/cta",
+  "version": "1.0.0",
+  "title": "Call to action",
+  "category": "design",
+  "icon": "megaphone",
+  "description": "Short message with one button.",
+  "textdomain": "websage-headless",
+  "attributes": {
+    "schemaVersion": {
+      "type": "integer"
+    },
+    "heading": {
+      "type": "string",
+      "default": ""
+    },
+    "body": {
+      "type": "string",
+      "default": ""
+    },
+    "link": {
+      "type": "object"
+    },
+    "theme": {
+      "type": "string",
+      "enum": ["default", "muted", "brand"],
+      "default": "default"
+    }
+  },
+  "supports": {
+    "html": false,
+    "reusable": false
+  },
+  "editorScript": "file:./index.js"
+}

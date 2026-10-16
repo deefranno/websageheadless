@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "websage/testimonial-reference",
+  "version": "1.0.0",
+  "title": "Testimonial",
+  "category": "design",
+  "icon": "format-quote",
+  "description": "One quote from the Testimonials library.",
+  "textdomain": "websage-headless",
+  "attributes": {
+    "schemaVersion": {
+      "type": "integer"
+    },
+    "testimonialId": {
+      "type": "integer"
+    }
+  },
+  "supports": {
+    "html": false,
+    "reusable": false
+  },
+  "editorScript": "file:./index.js",
+  "parent": ["websage/testimonials"]
+}
