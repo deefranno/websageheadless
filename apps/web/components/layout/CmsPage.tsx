@@ -1,10 +1,14 @@
 import type { Section } from '@websage/contracts';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import { PreviewBanner } from '@/components/preview/PreviewBanner';
-import { getPage } from '@/lib/api/fetchers';
+import { getPage, getSite } from '@/lib/api/fetchers';
+import { seoMetadata } from '@/lib/seo/metadata';
 import { previewFor } from '@/lib/preview/session';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { renderSection } from '@/lib/sections/registry';
+import { breadcrumbs, pageCrumbs } from '@/lib/seo/structured-data';
 
 /**
  * Renders a CMS page by frontend path, or its draft while previewing. Only
@@ -29,6 +33,11 @@ export async function CmsPage({ path }: { path: string }) {
   return (
     <>
       {preview.status === 'expired' ? <PreviewBanner expired /> : null}
+      <JsonLd
+        data={breadcrumbs(
+          pageCrumbs(page.path, page.title, page.seo.canonical),
+        )}
+      />
       <Sections title={page.title} sections={page.sections} />
     </>
   );
@@ -44,4 +53,15 @@ function Sections({ title, sections }: { title: string; sections: Section[] }) {
     );
   }
   return <>{sections.map(renderSection)}</>;
+}
+
+/** Metadata for a CMS page path (used by the route files). */
+export async function cmsPageMetadata(path: string): Promise<Metadata> {
+  await connection();
+  try {
+    const [page, site] = await Promise.all([getPage(path), getSite()]);
+    return page ? seoMetadata(page.seo, site.name) : {};
+  } catch {
+    return {};
+  }
 }

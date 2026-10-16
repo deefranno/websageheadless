@@ -1,13 +1,21 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
+import { getSite } from '@/lib/api/fetchers';
+import { siteMetadata } from '@/lib/seo/metadata';
 import { Suspense, type ReactNode } from 'react';
 import { HeaderFallback } from '@/components/layout/Header';
 import { SiteFooter, SiteHeader } from '@/components/layout/SiteChrome';
 import { fontVariables } from '@/config/fonts';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: { default: 'WebSage Headless', template: '%s' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  await connection();
+  try {
+    return siteMetadata(await getSite());
+  } catch {
+    return { title: { default: 'Website', template: '%s' } };
+  }
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
