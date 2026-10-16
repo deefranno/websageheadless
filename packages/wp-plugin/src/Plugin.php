@@ -11,6 +11,10 @@ namespace WebSage\HeadlessCore;
 
 use DomainException;
 use WebSage\HeadlessCore\Admin\Diagnostics;
+use WebSage\HeadlessCore\Admin\SubmissionsScreen;
+use WebSage\HeadlessCore\Contact\Mailer;
+use WebSage\HeadlessCore\Contact\Schema;
+use WebSage\HeadlessCore\Contact\Submissions;
 use WebSage\HeadlessCore\Blocks\Registry;
 use WebSage\HeadlessCore\Content\PostTypes;
 use WebSage\HeadlessCore\Fields\SeoMetabox;
@@ -73,6 +77,12 @@ final class Plugin {
 		add_filter( 'rest_pre_dispatch', array( PostTypes::class, 'guard_library_rest' ), 10, 3 );
 		add_filter( 'rest_pre_serve_request', array( Cors::class, 'close' ), 9, 3 );
 
+		add_action( 'plugins_loaded', array( Schema::class, 'maybe_install' ) );
+		add_action( Mailer::RETRY_HOOK, array( Mailer::class, 'retry' ) );
+		add_action( Submissions::RETENTION, array( Submissions::class, 'apply_retention' ) );
+		add_action( 'init', array( self::class, 'schedule' ) );
+		SubmissionsScreen::register();
+
 		Events::register();
 		Dispatcher::register();
 		AdminLink::register();
@@ -90,5 +100,24 @@ final class Plugin {
 			wp_die( esc_html( $e->getMessage() ), esc_html__( 'Plugin activation failed', 'websage-headless' ), array( 'back_link' => true ) );
 		}
 		Settings::migrate();
+		Schema::install();
+		self::schedule();
+	}
+
+	/**
+	 * Daily housekeeping: submission retention and expired rate-limit rows.
+	 */
+	public static function schedule(): void {
+		if ( ! wp_next_scheduled( Submissions::RETENTION ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', Submissions::RETENTION );
+		}
+	}
+
+	/**
+	 * Deactivation: stop scheduled housekeeping (data is kept).
+	 */
+	public static function deactivate(): void {
+		wp_clear_scheduled_hook( Submissions::RETENTION );
+		wp_clear_scheduled_hook( Mailer::RETRY_HOOK );
 	}
 }

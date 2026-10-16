@@ -63,4 +63,5 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/vendor/cmb2/cmb2/init.php';
 
 register_activation_hook( __FILE__, array( \WebSage\HeadlessCore\Plugin::class, 'activate' ) );
+register_deactivation_hook( __FILE__, array( \WebSage\HeadlessCore\Plugin::class, 'deactivate' ) );
 \WebSage\HeadlessCore\Plugin::register();

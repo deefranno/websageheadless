@@ -74,6 +74,15 @@ final class Routes {
 		);
 		register_rest_route(
 			self::NAMESPACE,
+			'/contact',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( ContactController::class, 'create' ),
+				'permission_callback' => array( ContactController::class, 'authorize' ),
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
 			'/preview/(?P<id>\d+)',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
