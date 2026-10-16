@@ -1,0 +1,32 @@
+{
+  "data": {
+    "slug": "hello",
+    "path": "/blog/hello",
+    "title": "Hello",
+    "excerpt": "First update.",
+    "published": "2026-10-16T12:00:00Z",
+    "modified": "2026-10-16T12:00:00Z",
+    "image": null,
+    "categories": [
+      {
+        "slug": "news",
+        "name": "News"
+      }
+    ],
+    "sections": [
+      {
+        "type": "core-content",
+        "schemaVersion": 1,
+        "key": "0",
+        "html": "<p>First update.</p>"
+      }
+    ],
+    "seo": {
+      "title": "Hello | Demo",
+      "description": "First update.",
+      "canonical": "https://www.example.com/blog/hello",
+      "openGraphImage": null,
+      "noindex": false
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "data": {
+    "kind": "page",
+    "content": {
+      "path": "/draft",
+      "title": "Unpublished",
+      "modified": "2026-10-16T12:00:00Z",
+      "sections": [],
+      "seo": {
+        "title": "Unpublished",
+        "description": "",
+        "canonical": "https://www.example.com/draft",
+        "openGraphImage": null,
+        "noindex": true
+      }
+    }
+  }
+}

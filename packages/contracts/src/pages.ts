@@ -1,12 +1,17 @@
 import { z } from 'zod';
-import { TextSchema, SeoSchema } from './primitives';
-import { SectionSchema } from './sections';
+import { SeoSchema, TextSchema, TimestampSchema } from './primitives';
+import { SectionsSchema } from './sections';
+
+export const PagePathSchema = z.string().startsWith('/').max(2048);
+
 export const PageSchema = z.strictObject({
-  path: z.string().startsWith('/').max(2048),
+  path: PagePathSchema,
   title: TextSchema,
-  modified: z.iso.datetime(),
-  sections: z.array(SectionSchema).max(100),
+  modified: TimestampSchema,
+  sections: SectionsSchema,
   seo: SeoSchema,
 });
+
 export const PageResponseSchema = z.strictObject({ data: PageSchema });
+
 export type Page = z.infer<typeof PageSchema>;
