@@ -1,0 +1,47 @@
+{
+  "data": {
+    "name": "WebSage Demo",
+    "branding": {
+      "logo": null,
+      "fonts": {
+        "heading": "sora",
+        "body": "montserrat"
+      },
+      "tokens": {
+        "primary": "#174F46",
+        "on_primary": "#FFFFFF",
+        "background": "#FFFFFF",
+        "foreground": "#17201E",
+        "muted": "#F2F5F4",
+        "on_muted": "#35443F",
+        "border": "#62736D",
+        "focus": "#126BDA"
+      }
+    },
+    "header": {
+      "announcement": "Welcome",
+      "announcementLink": null
+    },
+    "footer": {
+      "description": "Independent expertise.",
+      "copyright": "WebSage Creative",
+      "social": []
+    },
+    "menus": {
+      "primary": [
+        {
+          "label": "Home",
+          "href": "/",
+          "newTab": false,
+          "children": []
+        }
+      ],
+      "footer": []
+    },
+    "contact": {
+      "email": "hello@example.com",
+      "phone": "",
+      "address": ""
+    }
+  }
+}

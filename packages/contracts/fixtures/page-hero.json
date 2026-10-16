@@ -1,0 +1,32 @@
+{
+  "data": {
+    "path": "/",
+    "title": "Home",
+    "modified": "2026-10-16T12:00:00Z",
+    "sections": [
+      {
+        "type": "hero",
+        "schemaVersion": 1,
+        "key": "0",
+        "eyebrow": "Welcome",
+        "heading": "Build with confidence",
+        "body": "<p>Made for your team.</p>",
+        "image": null,
+        "primary": {
+          "label": "Contact",
+          "href": "/contact",
+          "newTab": false
+        },
+        "secondary": null,
+        "theme": "default"
+      }
+    ],
+    "seo": {
+      "title": "Home | Demo",
+      "description": "Our demonstration site.",
+      "canonical": "https://www.example.com/",
+      "openGraphImage": null,
+      "noindex": false
+    }
+  }
+}
