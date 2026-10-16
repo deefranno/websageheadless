@@ -139,3 +139,33 @@ test('a forged preview link is refused', async ({ page }) => {
   const response = await page.goto('/api/preview?token=forged.token');
   expect(response?.status()).toBe(401);
 });
+
+test('diagnostics report the integration and a test refresh is accepted', async ({
+  page,
+}) => {
+  await logIn(page);
+  await page.goto(`${wpUrl}/wp-admin/admin.php?page=wsh-diagnostics`);
+  const table = page.getByRole('table');
+  for (const name of [
+    'WSH_SERVER_API_SECRET',
+    'WSH_PREVIEW_SECRET',
+    'WSH_REVALIDATION_SECRET',
+  ]) {
+    await expect(
+      table.getByRole('row', { name: new RegExp(name) }),
+    ).toContainText('Configured');
+  }
+  await expect(table).not.toContainText(
+    process.env.WSH_PREVIEW_SECRET ?? 'unset',
+  );
+
+  await page.getByRole('link', { name: 'Send a test refresh' }).click();
+  await expect(page.getByText('Test refresh delivered')).toBeVisible();
+
+  await page
+    .getByRole('link', { name: 'Check the website is reachable' })
+    .click();
+  await expect(
+    page.getByText(/The website answered with HTTP 200/),
+  ).toBeVisible();
+});

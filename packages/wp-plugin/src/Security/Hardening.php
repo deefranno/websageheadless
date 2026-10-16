@@ -35,6 +35,9 @@ final class Hardening {
 			add_action( 'template_redirect', array( self::class, 'redirect_front_end' ), 0 );
 		}
 		if ( $settings['disable_xmlrpc'] ) {
+			if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
+				self::refuse_xmlrpc();
+			}
 			add_filter( 'xmlrpc_enabled', '__return_false' );
 			add_filter( 'xmlrpc_methods', '__return_empty_array' );
 			add_filter( 'wp_headers', array( self::class, 'remove_pingback_header' ) );
@@ -82,8 +85,8 @@ final class Hardening {
 		} catch ( ContentException ) {
 			return null;
 		}
-		// Never redirect to ourselves.
-		if ( wp_parse_url( $origin, PHP_URL_HOST ) === wp_parse_url( home_url(), PHP_URL_HOST ) ) {
+		// Never redirect to ourselves (same scheme, host and port).
+		if ( self::origin_of( $origin ) === self::origin_of( home_url() ) ) {
 			return null;
 		}
 		$object = get_queried_object();
@@ -95,6 +98,31 @@ final class Hardening {
 			return $origin . '/blog';
 		}
 		return $origin . '/';
+	}
+
+	/**
+	 * Scheme, host and port of a URL, lowercased.
+	 *
+	 * @param string $url URL.
+	 */
+	private static function origin_of( string $url ): string {
+		$parts = wp_parse_url( $url );
+		if ( ! is_array( $parts ) ) {
+			return '';
+		}
+		$scheme = strtolower( $parts['scheme'] ?? '' );
+		$port   = $parts['port'] ?? ( 'https' === $scheme ? 443 : 80 );
+		return $scheme . '://' . strtolower( $parts['host'] ?? '' ) . ':' . $port;
+	}
+
+	/**
+	 * Ends an XML-RPC request: the endpoint is off, including system methods.
+	 */
+	private static function refuse_xmlrpc(): void {
+		status_header( 403 );
+		header( 'Content-Type: text/plain; charset=utf-8' );
+		echo esc_html__( 'XML-RPC is disabled on this site.', 'websage-headless' );
+		exit;
 	}
 
 	/**

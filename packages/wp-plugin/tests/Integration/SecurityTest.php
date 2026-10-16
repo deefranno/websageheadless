@@ -50,4 +50,14 @@ final class SecurityTest extends ApiTestCase {
 		$this->go_to( home_url( '/?p=999999' ) );
 		$this->assertSame( 'https://www.example.com/', Hardening::target_for_request() );
 	}
+
+	public function test_same_host_on_another_port_is_still_a_different_site(): void {
+		update_option( 'home', 'https://www.example.com:8443' );
+		$this->go_to( home_url( '/' ) );
+		// Latest-posts front page maps to the frontend blog.
+		$this->assertSame( 'https://www.example.com/blog', Hardening::target_for_request() );
+
+		update_option( 'home', 'https://www.example.com' );
+		$this->assertNull( Hardening::target_for_request(), 'never redirects to itself' );
+	}
 }
