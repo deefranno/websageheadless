@@ -1,4 +1,3 @@
-import 'server-only';
 import { z } from 'zod';
 
 const HttpsOrigin = z
@@ -25,6 +24,19 @@ export interface ServerConfig {
   cmsOrigin: string;
   /** Serve shared contract fixtures instead of calling WordPress. */
   fixtureMode: boolean;
+}
+
+/**
+ * Server-only secret, or null when unset or shorter than 32 characters.
+ * Never use a NEXT_PUBLIC_ prefix for these.
+ */
+export function getSecret(
+  name:
+    'WSH_SERVER_API_SECRET' | 'WSH_PREVIEW_SECRET' | 'WSH_REVALIDATION_SECRET',
+  env: NodeJS.ProcessEnv = process.env,
+): string | null {
+  const value = env[name];
+  return typeof value === 'string' && value.length >= 32 ? value : null;
 }
 
 export class ConfigError extends Error {

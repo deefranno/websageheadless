@@ -10,25 +10,16 @@ declare(strict_types=1);
 namespace WebSage\HeadlessCore\Rest;
 
 use WebSage\HeadlessCore\Content\ContentException;
+use WebSage\HeadlessCore\Content\Menus;
+use WebSage\HeadlessCore\Content\Seo;
 use WebSage\HeadlessCore\Content\Values;
+use WebSage\HeadlessCore\Settings\Settings;
 use WP_REST_Response;
 
 /**
- * Site settings. Foundation returns explicit plugin defaults plus the real
- * site title; the CMB2 settings page and menus replace these in Phase 3.
+ * Site settings, branding, header, footer, menus and public contact details.
  */
 final class SiteController {
-
-	public const DEFAULT_TOKENS = array(
-		'primary'    => '#174F46',
-		'on_primary' => '#FFFFFF',
-		'background' => '#FFFFFF',
-		'foreground' => '#17201E',
-		'muted'      => '#F2F5F4',
-		'on_muted'   => '#35443F',
-		'border'     => '#62736D',
-		'focus'      => '#126BDA',
-	);
 
 	/**
 	 * Route callback.
@@ -45,36 +36,64 @@ final class SiteController {
 	 * Site payload in the SiteSchema contract shape.
 	 *
 	 * @return array<string, mixed>
-	 * @throws ContentException When the site title exceeds limits.
 	 */
 	public static function data(): array {
+		$s      = Settings::all();
+		$tokens = array();
+		foreach ( Settings::DEFAULT_TOKENS as $key => $default ) {
+			$value          = strtoupper( (string) $s[ $key ] );
+			$tokens[ $key ] = 1 === preg_match( '/^#[0-9A-F]{6}$/', $value ) ? $value : $default;
+		}
+
+		$announcement = Values::text_clipped( $s['announcement'] );
+		$link_href    = Values::url( $s['announcement_link'] );
+
+		$social = array();
+		foreach ( (array) $s['social'] as $entry ) {
+			$label = Values::text_clipped( is_array( $entry ) ? ( $entry['label'] ?? '' ) : '' );
+			$url   = Values::url( is_array( $entry ) ? ( $entry['url'] ?? '' ) : '' );
+			if ( '' !== $label && null !== $url && count( $social ) < 20 ) {
+				$social[] = array(
+					'label' => $label,
+					'url'   => $url,
+				);
+			}
+		}
+
+		$email = (string) $s['contact_email'];
 		return array(
-			'name'     => Values::text( html_entity_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ), 'name' ),
+			'name'     => Seo::site_name(),
 			'branding' => array(
-				'logo'   => null,
+				'logo'   => Values::image( (int) $s['logo_id'] ),
 				'fonts'  => array(
-					'heading' => 'sora',
-					'body'    => 'montserrat',
+					'heading' => in_array( $s['font_heading'], Settings::HEADING_FONTS, true ) ? $s['font_heading'] : 'sora',
+					'body'    => in_array( $s['font_body'], Settings::BODY_FONTS, true ) ? $s['font_body'] : 'montserrat',
 				),
-				'tokens' => self::DEFAULT_TOKENS,
+				'tokens' => $tokens,
 			),
 			'header'   => array(
-				'announcement'     => '',
-				'announcementLink' => null,
+				'announcement'     => $announcement,
+				'announcementLink' => '' !== $announcement && null !== $link_href
+					? array(
+						'label'  => $announcement,
+						'href'   => $link_href,
+						'newTab' => false,
+					)
+					: null,
 			),
 			'footer'   => array(
-				'description' => '',
-				'copyright'   => '',
-				'social'      => array(),
+				'description' => Values::text_clipped( $s['footer_description'] ),
+				'copyright'   => Values::text_clipped( $s['copyright'] ),
+				'social'      => $social,
 			),
 			'menus'    => array(
-				'primary' => array(),
-				'footer'  => array(),
+				'primary' => Menus::tree( 'primary' ),
+				'footer'  => Menus::tree( 'footer' ),
 			),
 			'contact'  => array(
-				'email'   => '',
-				'phone'   => '',
-				'address' => '',
+				'email'   => is_email( $email ) ? $email : '',
+				'phone'   => Values::text_clipped( $s['contact_phone'] ),
+				'address' => Values::text_clipped( $s['contact_address'] ),
 			),
 		);
 	}

@@ -1,0 +1,128 @@
+{
+  "data": {
+    "path": "/services",
+    "title": "Services",
+    "modified": "2026-10-16T12:00:00Z",
+    "sections": [
+      {
+        "type": "hero",
+        "schemaVersion": 1,
+        "key": "0",
+        "eyebrow": "",
+        "heading": "Services",
+        "body": "",
+        "image": null,
+        "primary": null,
+        "secondary": null,
+        "theme": "brand"
+      },
+      {
+        "type": "text-image",
+        "schemaVersion": 1,
+        "key": "1",
+        "heading": "How we work",
+        "body": "<p>Clear plans.</p><ul><li>Discovery</li></ul>",
+        "image": {
+          "url": "https://cms.example.com/wp-content/uploads/2026/10/team.jpg",
+          "alt": "Our team",
+          "width": 1200,
+          "height": 800
+        },
+        "position": "right",
+        "theme": "default"
+      },
+      {
+        "type": "feature-grid",
+        "schemaVersion": 1,
+        "key": "2",
+        "heading": "What you get",
+        "introduction": "Everything included.",
+        "columns": 3,
+        "theme": "muted",
+        "items": [
+          {
+            "title": "Strategy",
+            "body": "A roadmap.",
+            "image": null,
+            "link": {
+              "label": "Learn more",
+              "href": "/strategy",
+              "newTab": false
+            }
+          },
+          {
+            "title": "Design",
+            "body": "<strong>Accessible</strong> design.",
+            "image": null,
+            "link": null
+          }
+        ]
+      },
+      {
+        "type": "testimonials",
+        "schemaVersion": 1,
+        "key": "3",
+        "heading": "Clients say",
+        "theme": "default",
+        "items": [
+          {
+            "quote": "They delivered.",
+            "author": "Alex Kim",
+            "role": "Director",
+            "company": "Acme",
+            "image": null
+          }
+        ]
+      },
+      {
+        "type": "faq",
+        "schemaVersion": 1,
+        "key": "4",
+        "heading": "Questions",
+        "theme": "default",
+        "items": [
+          {
+            "question": "How long?",
+            "answer": "Usually <em>six weeks</em>."
+          }
+        ]
+      },
+      {
+        "type": "core-content",
+        "schemaVersion": 1,
+        "key": "5",
+        "html": "<h2>Pricing</h2><p>Ask us.</p>"
+      },
+      {
+        "type": "cta",
+        "schemaVersion": 1,
+        "key": "6",
+        "heading": "Ready?",
+        "body": "Let's talk.",
+        "link": {
+          "label": "Contact",
+          "href": "/contact",
+          "newTab": false
+        },
+        "theme": "brand"
+      },
+      {
+        "type": "contact",
+        "schemaVersion": 1,
+        "key": "7",
+        "heading": "Contact us",
+        "body": "We reply within a day.",
+        "submitLabel": "Send",
+        "successMessage": "Thanks, we'll be in touch.",
+        "theme": "muted"
+      }
+    ],
+    "seo": {
+      "title": "Services | Demo",
+      "description": "What we do.",
+      "canonical": "https://www.example.com/services",
+      "openGraphImage": null,
+      "noindex": false
+    }
+  }
+}

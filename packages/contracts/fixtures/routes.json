@@ -1,0 +1,30 @@
+{
+  "data": {
+    "items": [
+      {
+        "path": "/",
+        "kind": "page",
+        "modified": "2026-10-16T12:00:00Z",
+        "noindex": false
+      },
+      {
+        "path": "/blog",
+        "kind": "index",
+        "modified": "2026-10-16T12:00:00Z",
+        "noindex": false
+      },
+      {
+        "path": "/blog/hello",
+        "kind": "post",
+        "modified": "2026-10-16T12:00:00Z",
+        "noindex": false
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "perPage": 100,
+      "total": 3,
+      "totalPages": 1
+    }
+  }
+}

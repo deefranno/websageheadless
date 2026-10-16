@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "websage/feature-grid",
+  "version": "1.0.0",
+  "title": "Feature grid",
+  "category": "design",
+  "icon": "grid-view",
+  "description": "Grid of features with optional images and links.",
+  "textdomain": "websage-headless",
+  "attributes": {
+    "schemaVersion": {
+      "type": "integer"
+    },
+    "heading": {
+      "type": "string",
+      "default": ""
+    },
+    "introduction": {
+      "type": "string",
+      "default": ""
+    },
+    "columns": {
+      "type": "integer",
+      "enum": [2, 3, 4],
+      "default": 3
+    },
+    "theme": {
+      "type": "string",
+      "enum": ["default", "muted", "brand"],
+      "default": "default"
+    }
+  },
+  "supports": {
+    "html": false,
+    "reusable": false
+  },
+  "editorScript": "file:./index.js"
+}

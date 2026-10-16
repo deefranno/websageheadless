@@ -17,7 +17,7 @@ final class PathResolver {
 	public const HOME_ALIAS = 'home';
 
 	/** First path segments owned by the frontend. */
-	public const RESERVED = array( 'blog', 'api', 'preview', '_next' );
+	public const RESERVED = array( 'blog', 'api', 'preview', '_next', 'wsh-404' );
 
 	private const MAX_LENGTH   = 2048;
 	private const MAX_SEGMENTS = 10;

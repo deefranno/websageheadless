@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "event": "content.updated",
+  "resource": "page",
+  "paths": ["/old-about", "/about"],
+  "tags": ["page:/old-about", "page:/about", "routes"]
+}

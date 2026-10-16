@@ -105,24 +105,24 @@ jobs:
           curl -fsSLO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
           curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.sha512 -o wp-cli.phar.sha512
           echo "$(cat wp-cli.phar.sha512)  wp-cli.phar" | sha512sum -c -
-      - name: Start disposable WordPress (SQLite)
+      - name: Start disposable WordPress (SQLite) and HTTPS fronts
         run: |
           scripts/wp-sqlite-site.sh start
-          php .tools/wp-cli/wp-cli.phar --path=.wordpress/sqlite-site plugin activate websage-headless-core
-          cat .wordpress/sqlite-site/e2e.env | sed "s/'//g" | grep -v PASSWORD >> "$GITHUB_ENV"
-          echo "WSH_E2E_WP_PASSWORD=$(sed -n "s/^WSH_E2E_WP_PASSWORD='\(.*\)'/\1/p" .wordpress/sqlite-site/e2e.env)" >> "$GITHUB_ENV"
+          # Fresh per-run secrets and URLs for the frontend; masked in logs.
+          sed "s/'//g" .wordpress/sqlite-site/e2e.env >> "$GITHUB_ENV"
+          for name in WSH_E2E_WP_PASSWORD WSH_SERVER_API_SECRET WSH_PREVIEW_SECRET WSH_REVALIDATION_SECRET; do
+            echo "::add-mask::$(sed -n "s/^$name='\(.*\)'/\1/p" .wordpress/sqlite-site/e2e.env)"
+          done
       - name: Build and start the frontend
         env:
           WORDPRESS_MEDIA_HOST: localhost:8443
         run: |
           pnpm --filter @websage/web build
           cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/
-          PORT=3000 HOSTNAME=127.0.0.1 WP_API_ORIGIN=https://localhost:8443 \
-            nohup node apps/web/.next/standalone/apps/web/server.js > next.log 2>&1 &
+          # Default HOSTNAME (0.0.0.0): see ADR-014 on proxy rewrites behind TLS.
+          PORT=3000 nohup node apps/web/.next/standalone/apps/web/server.js > next.log 2>&1 &
           for _ in $(seq 1 60); do curl -fs -o /dev/null http://127.0.0.1:3000/blog && break; sleep 1; done
       - run: pnpm --filter @websage/web exec playwright install --with-deps chromium
       - run: pnpm test:integration
-        env:
-          WSH_E2E_WEB_URL: http://127.0.0.1:3000
       - if: failure()
-        run: cat next.log .wordpress/sqlite-site/php.log || true
+        run: tail -n 200 next.log .wordpress/sqlite-site/php.log .wordpress/sqlite-site/*proxy.log || true

@@ -1,37 +1,47 @@
 import type { ComponentType, ReactNode } from 'react';
-import type { HeroSection, Page } from '@websage/contracts';
+import {
+  isKnownSection,
+  type KnownSection,
+  type Section,
+} from '@websage/contracts';
+import { CoreContent } from '@/components/sections/CoreContent';
 import { Hero } from '@/components/sections/Hero';
-
-type Section = Page['sections'][number];
 
 interface SectionProps<T> {
   section: T;
   isFirst: boolean;
 }
 
+type Registry = {
+  [T in KnownSection['type']]?: ComponentType<
+    SectionProps<Extract<KnownSection, { type: T }>>
+  >;
+};
+
 /**
  * Section type → component. Adding a section means: a websage/* block, its
  * Zod schema in @websage/contracts, a component, and one entry here.
+ * Types without an entry yet are treated like unknown types.
  */
-const registry: { hero: ComponentType<SectionProps<HeroSection>> } = {
+const registry: Registry = {
   hero: Hero,
+  'core-content': CoreContent,
 };
 
-function isKnown(section: Section): section is HeroSection {
-  return section.type in registry;
-}
-
 /**
- * Renders one validated section. Unknown types (newer plugin than frontend)
- * are skipped in production and flagged in development. Malformed known
- * types never reach here: contract validation rejects the whole response.
+ * Renders one validated section. Unknown or not-yet-rendered types are
+ * skipped in production and flagged in development. Malformed known types
+ * never reach here: contract validation rejects the whole response.
  */
 export function renderSection(section: Section, index: number): ReactNode {
-  if (isKnown(section)) {
-    const Component = registry[section.type];
-    return (
-      <Component key={section.key} section={section} isFirst={index === 0} />
-    );
+  if (isKnownSection(section)) {
+    const Component = registry[section.type] as
+      ComponentType<SectionProps<KnownSection>> | undefined;
+    if (Component) {
+      return (
+        <Component key={section.key} section={section} isFirst={index === 0} />
+      );
+    }
   }
 
   if (process.env.NODE_ENV !== 'production') {

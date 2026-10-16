@@ -1,0 +1,33 @@
+{
+  "data": {
+    "items": [
+      {
+        "slug": "hello",
+        "path": "/blog/hello",
+        "title": "Hello",
+        "excerpt": "First update.",
+        "published": "2026-10-16T12:00:00Z",
+        "modified": "2026-10-16T12:00:00Z",
+        "image": null,
+        "categories": [
+          {
+            "slug": "news",
+            "name": "News"
+          }
+        ]
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "perPage": 10,
+      "total": 1,
+      "totalPages": 1
+    },
+    "categories": [
+      {
+        "slug": "news",
+        "name": "News"
+      }
+    ]
+  }
+}
