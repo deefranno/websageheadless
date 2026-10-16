@@ -38,6 +38,13 @@ createServer(
         headers: {
           ...endToEnd(incoming.headers),
           'x-forwarded-proto': 'https',
+          // Append the connecting address, as real reverse proxies do.
+          'x-forwarded-for': [
+            incoming.headers['x-forwarded-for'],
+            incoming.socket.remoteAddress,
+          ]
+            .filter(Boolean)
+            .join(', '),
         },
       },
       (response) => {
