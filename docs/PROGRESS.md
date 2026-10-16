@@ -29,8 +29,10 @@ Done: dedicated repository on `feat/foundation`; pnpm workspace with exact pins 
 
 Verified here: `pnpm lint`, `typecheck`, `test`, `build` all pass; PHP unit 30/30; WordPress integration 22/22 in both CMB2 load orders (SQLite); fresh activation and editor → frontend round trip (SQLite harness, production build).
 
-Not verified: CI run (no remote, nothing pushed); DDEV/MySQL activation (no Docker on this machine).
+CI green: GitHub Actions run 38954792820 (commit 2e9378c), all four jobs passed, including WordPress integration on PHP 8.1/8.3 against MariaDB.
+
+Not verified: DDEV environment and its commands (no Docker on this machine).
 
 ADR-011 approved 2026-10-16: soft 404 with noindex now; Phase 3 adds a proxy existence check for real 404 status.
 
-Next: owner review of the Phase 2 gate; inspect the CI run on https://github.com/deefranno/websageheadless; run `ddev websage-install`/`websage-test` on a Docker host; then Phase 3.
+Next: owner review of the Phase 2 gate; run `ddev websage-install`/`websage-test` on a Docker host; then Phase 3.
