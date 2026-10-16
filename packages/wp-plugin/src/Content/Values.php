@@ -65,7 +65,8 @@ final class Values {
 	}
 
 	/**
-	 * A safe frontend path or HTTPS URL. CMS-origin URLs become frontend paths.
+	 * A safe frontend path or HTTPS URL. CMS-origin URLs become frontend paths,
+	 * except uploaded media, which stays on the CMS.
 	 *
 	 * @param mixed $value Stored URL.
 	 * @return string|null Null when unsafe or empty.
@@ -84,7 +85,8 @@ final class Values {
 		}
 
 		$cms_host = wp_parse_url( home_url(), PHP_URL_HOST );
-		if ( strtolower( $parts['host'] ) === strtolower( (string) $cms_host ) ) {
+		$is_media = str_starts_with( $parts['path'] ?? '', '/wp-content/uploads/' );
+		if ( ! $is_media && strtolower( $parts['host'] ) === strtolower( (string) $cms_host ) ) {
 			$path = ( $parts['path'] ?? '/' )
 				. ( isset( $parts['query'] ) ? '?' . $parts['query'] : '' )
 				. ( isset( $parts['fragment'] ) ? '#' . $parts['fragment'] : '' );

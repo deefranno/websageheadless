@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace WebSage\HeadlessCore;
 
 use DomainException;
-use WebSage\HeadlessCore\Blocks\HeroBlock;
+use WebSage\HeadlessCore\Blocks\Registry;
 use WebSage\HeadlessCore\Rest\Errors;
 use WebSage\HeadlessCore\Rest\Routes;
 use WebSage\HeadlessCore\Support\Requirements;
@@ -42,7 +42,7 @@ final class Plugin {
 			return;
 		}
 
-		add_action( 'init', array( HeroBlock::class, 'register' ) );
+		add_action( 'init', array( Registry::class, 'register' ) );
 		add_action( 'rest_api_init', array( Routes::class, 'register' ) );
 		add_filter( 'rest_post_dispatch', array( Errors::class, 'adapt' ), 10, 3 );
 	}

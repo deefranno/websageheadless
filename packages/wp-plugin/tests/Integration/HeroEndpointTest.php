@@ -326,6 +326,28 @@ final class HeroEndpointTest extends WP_UnitTestCase {
 		$this->assertSame( 'default', $section['theme'] );
 	}
 
+	public function test_cms_media_links_stay_on_the_cms(): void {
+		update_option( 'home', 'https://example.org' );
+		$media = 'https://example.org/wp-content/uploads/2026/10/guide.pdf';
+		$this->page(
+			array(
+				'post_name'    => 'media-link',
+				'post_content' => self::hero(
+					array(
+						'primary' => array(
+							'label' => 'Guide',
+							'href'  => $media,
+						),
+					)
+				),
+			)
+		);
+
+		$primary = $this->get( '/websage/v1/pages/media-link' )->get_data()['data']['sections'][0]['primary'];
+
+		$this->assertSame( $media, $primary['href'], 'media is not rewritten into a frontend path' );
+	}
+
 	public function test_core_rest_errors_in_namespace_use_the_envelope(): void {
 		$response = $this->get( '/websage/v1/does-not-exist' );
 

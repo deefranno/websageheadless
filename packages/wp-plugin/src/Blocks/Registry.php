@@ -12,7 +12,7 @@ namespace WebSage\HeadlessCore\Blocks;
 /**
  * Registers websage/* blocks from compiled metadata in build/.
  */
-final class HeroBlock {
+final class Registry {
 
 	/**
 	 * `init` callback.
