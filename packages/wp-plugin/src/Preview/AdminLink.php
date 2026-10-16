@@ -41,15 +41,14 @@ final class AdminLink {
 		if ( ! in_array( $post->post_type, array( 'page', 'post' ), true ) || ! current_user_can( 'edit_post', $post->ID ) ) {
 			return $link;
 		}
-		return wp_nonce_url(
-			add_query_arg(
-				array(
-					'action' => self::ACTION,
-					'post'   => $post->ID,
-				),
-				admin_url( 'admin-post.php' )
+		// A raw URL: the editor uses it as-is (wp_nonce_url() would HTML-escape "&").
+		return add_query_arg(
+			array(
+				'action'   => self::ACTION,
+				'post'     => $post->ID,
+				'_wpnonce' => wp_create_nonce( self::ACTION . '_' . $post->ID ),
 			),
-			self::ACTION . '_' . $post->ID
+			admin_url( 'admin-post.php' )
 		);
 	}
 

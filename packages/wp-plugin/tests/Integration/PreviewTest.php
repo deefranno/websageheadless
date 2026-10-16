@@ -147,6 +147,11 @@ final class PreviewTest extends ApiTestCase {
 		);
 		$this->assertSame( 'Unsaved change', $content->get_data()['data']['content']['sections'][0]['heading'] );
 
-		$this->assertStringContainsString( 'action=wsh_preview', AdminLink::link( 'https://cms/?p=1', get_post( $page ) ) );
+		$link = AdminLink::link( 'https://cms/?p=1', get_post( $page ) );
+		$this->assertStringNotContainsString( '&amp;', $link );
+		parse_str( (string) wp_parse_url( $link, PHP_URL_QUERY ), $args );
+		$this->assertSame( 'wsh_preview', $args['action'] );
+		$this->assertSame( (string) $page, $args['post'] );
+		$this->assertSame( 1, wp_verify_nonce( $args['_wpnonce'], 'wsh_preview_' . $page ) );
 	}
 }

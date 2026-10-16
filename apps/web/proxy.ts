@@ -37,6 +37,14 @@ async function load(force: boolean): Promise<Set<string> | null> {
   }
 }
 
+/** Internal rewrite: same origin as the request, whatever proxies sit in front. */
+function missing(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  url.pathname = '/wsh-404';
+  url.search = '';
+  return NextResponse.rewrite(url);
+}
+
 function normalize(pathname: string): string | null {
   try {
     const path = decodeURIComponent(pathname);
@@ -56,8 +64,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
   const path = normalize(request.nextUrl.pathname);
-  if (path === null)
-    return NextResponse.rewrite(new URL('/wsh-404', request.url));
+  if (path === null) return missing(request);
 
   let routes = await load(false);
   if (!routes || routes.has(path)) return NextResponse.next();
@@ -65,7 +72,7 @@ export async function proxy(request: NextRequest) {
     routes = await load(true);
     if (!routes || routes.has(path)) return NextResponse.next();
   }
-  return NextResponse.rewrite(new URL('/wsh-404', request.url));
+  return missing(request);
 }
 
 export const config = {

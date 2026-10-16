@@ -44,10 +44,9 @@ export async function GET(request: NextRequest) {
   }
 
   (await draftMode()).enable();
-  const response = NextResponse.redirect(
-    new URL(payload.path, request.url),
-    303,
-  );
+  // Behind a TLS proxy request.url is the internal URL; prefer the public origin.
+  const base = process.env.FRONTEND_ORIGIN ?? request.url;
+  const response = NextResponse.redirect(new URL(payload.path, base), 303);
   for (const [name, value] of Object.entries(HEADERS)) {
     response.headers.set(name, value);
   }

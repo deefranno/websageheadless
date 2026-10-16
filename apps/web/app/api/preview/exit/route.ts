@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
     return new NextResponse('Forbidden', { status: 403 });
   }
   (await draftMode()).disable();
-  const response = NextResponse.redirect(new URL('/', request.url), 303);
+  const response = NextResponse.redirect(
+    new URL('/', process.env.FRONTEND_ORIGIN ?? request.url),
+    303,
+  );
   response.headers.set('Cache-Control', 'no-store');
   response.cookies.delete(GRANT_COOKIE);
   return response;

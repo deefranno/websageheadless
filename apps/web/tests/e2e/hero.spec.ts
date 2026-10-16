@@ -1,23 +1,15 @@
 import { PageResponseSchema } from '@websage/contracts';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import {
+  configured,
+  logIn,
+  openEditor,
+  publish,
+  skipReason,
+  wpUrl,
+} from './support/wp';
 
-const wpUrl = process.env.WSH_E2E_WP_URL;
-const user = process.env.WSH_E2E_WP_USER;
-const password = process.env.WSH_E2E_WP_PASSWORD;
-
-test.skip(
-  !wpUrl || !user || !password,
-  'Set WSH_E2E_WP_URL, WSH_E2E_WP_USER and WSH_E2E_WP_PASSWORD',
-);
-
-async function logIn(page: Page) {
-  const target = encodeURIComponent(`${wpUrl}/wp-admin/`);
-  await page.goto(`${wpUrl}/wp-login.php?redirect_to=${target}`);
-  await page.getByLabel('Username or Email Address').fill(user!);
-  await page.getByLabel('Password', { exact: true }).fill(password!);
-  await page.getByRole('button', { name: 'Log In' }).click();
-  await expect(page).toHaveURL(/wp-admin/);
-}
+test.skip(!configured, skipReason);
 
 test('a hero saved in the block editor reaches the frontend', async ({
   page,
@@ -31,56 +23,19 @@ test('a hero saved in the block editor reaches the frontend', async ({
   });
 
   await logIn(page);
-  await page.goto(`${wpUrl}/wp-admin/post-new.php?post_type=page`);
-
-  // First-run welcome guide and the new-page pattern chooser.
-  await page.waitForSelector('iframe[name="editor-canvas"]');
-  const dialog = page.locator('.components-modal__frame');
-  for (let attempt = 0; attempt < 3; attempt++) {
-    if (
-      !(await dialog
-        .first()
-        .isVisible({ timeout: 3_000 })
-        .catch(() => false))
-    )
-      break;
-    await page.keyboard.press('Escape');
-    await expect(dialog)
-      .toHaveCount(0, { timeout: 5_000 })
-      .catch(() => {});
-  }
-
-  const canvas = page.frameLocator('iframe[name="editor-canvas"]');
+  const canvas = await openEditor(
+    page,
+    `${wpUrl}/wp-admin/post-new.php?post_type=page`,
+  );
   await canvas.getByRole('textbox', { name: 'Add title' }).fill(unique);
-
-  await page.getByRole('button', { name: /block inserter/i }).click();
-  await page.getByPlaceholder('Search').fill('Hero');
-  // Block results come first; theme patterns titled "Hero …" follow.
-  await page
-    .getByRole('option')
-    .filter({ hasText: /^Hero$/ })
-    .first()
-    .click();
-
-  await canvas.getByLabel('Eyebrow').fill('From Playwright');
-  await canvas.getByLabel('Heading').fill(heading);
+  // New pages start from the default template: hero, text and image, CTA.
+  await canvas.getByLabel('Eyebrow').first().fill('From Playwright');
+  await canvas.getByLabel('Heading').first().fill(heading);
   await canvas
     .getByRole('textbox', { name: 'Body text' })
+    .first()
     .fill('Saved through the real editor.');
-
-  await page
-    .getByRole('region', { name: 'Editor top bar' })
-    .getByRole('button', { name: 'Publish', exact: true })
-    .click();
-  await page
-    .getByRole('region', { name: 'Editor publish' })
-    .getByRole('button', { name: 'Publish', exact: true })
-    .click();
-  await expect(
-    page
-      .getByRole('region', { name: 'Editor publish' })
-      .getByText(/is now live/),
-  ).toBeVisible();
+  await publish(page);
 
   // REST payload produced by parse_blocks() satisfies the shared contract.
   const response = await request.get(
@@ -96,7 +51,6 @@ test('a hero saved in the block editor reaches the frontend', async ({
     theme: 'default',
   });
 
-  // Frontend renders it (fresh path, so nothing is cached yet).
   await page.goto(`/${unique}`);
   await expect(
     page.getByRole('heading', { level: 1, name: heading }),
@@ -108,15 +62,13 @@ test('a hero saved in the block editor reaches the frontend', async ({
   ).toEqual([]);
 });
 
-test('a missing page shows the not-found UI and is not indexable', async ({
-  page,
-}) => {
-  await page.goto('/this-page-does-not-exist-e2e');
+test('a missing page is a real 404 with the not-found UI', async ({ page }) => {
+  const response = await page.goto('/this-page-does-not-exist-e2e');
+  expect(response?.status()).toBe(404);
   await expect(
     page.getByRole('heading', { name: 'Page not found' }),
   ).toBeVisible();
-  await expect(page.locator('head meta[name="robots"]')).toHaveAttribute(
-    'content',
-    'noindex',
-  );
+  await expect(
+    page.locator('head meta[name="robots"]').first(),
+  ).toHaveAttribute('content', /noindex/);
 });
