@@ -22,3 +22,15 @@ Owner approved Phase 1 on 2026-10-16. The proposed architecture defaults are acc
 Phase 2 planning: written implementation plan at `docs/superpowers/plans/2026-10-16-foundation.md`. Awaiting required plan review and execution-method selection before implementation. Recommend native execution. Read-only prerequisites show Node 20.19.2, npm 9.2.0, PHP 8.4.26; pnpm/Composer/Docker/DDEV not on PATH. Project .git remains protected and Git resolves to the parent Pictures repository; isolation must be resolved through permitted setup. No implementation has begun.
 
 Known limitations/open decisions: license terms/legal review; font allowlist; retention; CSP/caching trade-off; standalone scaling; minimum supported WordPress; parent Git repository. Exact baseline pins are documented, not installed or tested; verify compatibility/security again at Foundation initialization. Security/support contact required before commercial packaging.
+
+## Phase 2 — Foundation, implemented; awaiting gate review
+
+Done: dedicated repository on `feat/foundation`; pnpm workspace with exact pins (ADR-008); contracts with shared fixtures; WebSage Headless Core plugin (activation checks, missing-vendor notice, bundled CMB2 2.13.4, `websage/hero` dynamic block with deprecation and server migration, public `GET /websage/v1/site` and `/pages/{slug}`, error envelope, uninstall); Next.js frontend (server-only validated API client, Cache Components data cache, sanitizer, section registry, hero, token-driven theme, layout and route states, standalone output, security headers); DDEV config and commands; CI workflow; Docker-less SQLite harness; Playwright editor round trip. Details and command output: `docs/reports/phase-2-verification.md`. Setup: `docs/FOUNDATION.md`.
+
+Verified here: `pnpm lint`, `typecheck`, `test`, `build` all pass; PHP unit 30/30; WordPress integration 22/22 in both CMB2 load orders (SQLite); fresh activation and editor → frontend round trip (SQLite harness, production build).
+
+Not verified: CI run (no remote, nothing pushed); DDEV/MySQL activation (no Docker on this machine).
+
+Needs owner decision: ADR-011 (soft 404 with noindex vs a Phase 3 proxy check for real 404 status).
+
+Next: owner review of the Phase 2 gate; push to a GitHub remote to obtain a real CI run; run `ddev websage-install`/`websage-test` on a Docker host; then Phase 3.

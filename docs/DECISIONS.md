@@ -56,3 +56,45 @@ Alternatives: GPL entire kit simplifies reuse but changes frontend business term
 Context: project has no tracked implementation and git rev-parse resolves to /home/duanef/Pictures. Parent repository contains unrelated staged work.
 Decision: create only Phase 1 documents here; propose dedicated repository before implementation. Do not stage or commit in the parent repository during this phase.
 Alternatives: commit into parent or initialize nested Git without review. Consequences: no Phase 1 commit created; recommended future message is `docs: define WebSage Headless phase one architecture`. Repository isolation must be resolved before Phase 2 commits.
+
+## ADR-008 — Foundation tooling pins (Phase 2)
+
+Context: ADR-001 deferred exact tooling versions to Foundation. Registry checks on 2026-10-16.
+Decision: exact pins, committed lockfiles (`pnpm-lock.yaml`, `packages/wp-plugin/composer.lock`).
+
+| Area | Pins |
+|---|---|
+| JS runtime/tooling | Node 24.22.0, pnpm 12.14.0, TypeScript 5.9.3, ESLint 9.39.1 + eslint-config-next 16.4.2, Prettier 3.9.10, Vitest 5.0.5, Playwright 1.64.1 |
+| Frontend | Next.js 16.4.2, React 19.3.0, Tailwind 4.3.3, Zod 4.6.7, sanitize-html 2.18.1 |
+| Block build | @wordpress/scripts 36.1.0, @wordpress/block-editor 18.1.0 (stable `LinkControl` export, confirmed present in WordPress 7.1.3's `wp.blockEditor`) |
+| PHP runtime | CMB2 2.13.4 (only production dependency) |
+| PHP tooling | Composer 2.10.3, PHPUnit 9.6.38, yoast/phpunit-polyfills 4.0.0, wp-phpunit 7.1.1 (latest published; WordPress 7.1.3 runtime), PHPStan 2.3.1 + szepeviktor/phpstan-wordpress 2.0.4 + wordpress-stubs 7.1.2, WPCS 3.4.1, PHPCompatibilityWP 2.1.8 |
+
+Alternatives: ESLint 10 / TypeScript 7 conflict with framework parser peer ranges; PHPUnit 10+ require PHP 8.2+ or are unsupported by the WordPress test library, which would break the PHP 8.1 CI leg. Consequences: revisit majors when peers allow. CI actions pinned to commit SHAs (checkout v7.0.1, setup-node v7.1.0, pnpm/action-setup v6.1.0, setup-php 2.40.0).
+
+## ADR-009 — Next.js Cache Components for the data cache
+
+Context: Next.js 16 documents `unstable_cache` as replaced by `'use cache'`. The plan requires that only validated data enters the persistent cache and that builds do not need the CMS.
+Decision: enable `cacheComponents`. `getSite`/`getPage` are `'use cache'` functions with `cacheTag('site' | 'page:{path}')` and `cacheLife({ stale: 60, revalidate: 300, expire: 86400 })`. The inner `fetch` is `no-store`, and validation runs inside the cached function. Thrown errors are not cached, so outages and contract violations never persist. A confirmed 404 is cached as `null` under the page tag. Components call `connection()` before reading, so CMS access is request-time behind Suspense.
+Alternatives: fetch-level caching (caches raw responses before validation); `unstable_cache` (superseded). Consequences: Phase 3 webhooks call `revalidateTag(tag, { expire: 0 })`. Errors from `'use cache'` scopes are logged by Next.js, which is why expected absence is a value, not an exception.
+
+## ADR-010 — Docker-less WordPress harness (test tooling only)
+
+Context: this workstation has no Docker; the plan forbids claiming activation or round-trip results without running them.
+Decision: `scripts/wp-sqlite-test-env.sh` and `scripts/wp-sqlite-site.sh` run real WordPress 7.1.3 (SHA-1 verified download) with the official SQLite Database Integration 3.1.0 drop-in, `php -S` and a local TLS proxy. Used for local evidence and the CI Playwright job. Never shipped; not a runtime dependency.
+Alternatives: report everything as blocked until Docker is installed. Consequences: SQLite results are reported separately from MySQL. The CI `wordpress` job (MariaDB 11.4, PHP 8.1 and 8.3) and DDEV remain authoritative. Note: the SQLite plugin release was 8 days old at adoption; acceptable for test tooling only.
+
+## ADR-011 — Missing pages are soft 404s with noindex (proposed, needs owner approval)
+
+Context: the spec asks for `loading.tsx` on every route and a not-found state. Streaming commits HTTP 200 before the CMS lookup finishes, and Next.js 16 serves a prerendered fallback shell for catch-all routes. Tested: removing all Suspense boundaries and setting `instant = false` still returned 200 for `[...slug]`.
+Decision (proposed): keep streaming and loading states. Missing pages render the not-found UI client-side with `<meta name="robots" content="noindex">`, which Next.js injects; verified in the production build and by Playwright.
+Alternatives: (a) Phase 3 `proxy.ts` existence check against the cached `/routes` list to return a real 404 before rendering, recommended as a follow-up; (b) drop catch-all routing for explicit routes, which is not viable for CMS-defined paths. Consequences: crawlers see 200 plus noindex; the not-found message needs JavaScript.
+
+## ADR-012 — Smaller Foundation choices
+
+- Block `schemaVersion` has no default in `block.json`. A missing value means version 1, because WordPress omits default-valued attributes from post content. Future versions must store an explicit number.
+- Public CSP uses `'unsafe-inline'` for scripts (static-compatible baseline per ADR-005). Nonce policy is deferred to preview routes.
+- Hero heading level: the first section renders the page's only `h1`; later heroes use `h2`.
+- SEO description defaults to the WordPress tagline until the Phase 3 SEO metabox.
+- PHPCS prefix `wsh_` (four characters, satisfying WPCS) matches the approved hook/option prefix. Exception messages are excluded from output-escaping sniffs because they are log-only.
+- WP-CLI `rewrite structure` fails on paths containing spaces (it spawns an unquoted subprocess); scripts set `permalink_structure` directly.
