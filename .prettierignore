@@ -1,0 +1,15 @@
+.tools
+.superpowers
+node_modules
+.next
+dist
+vendor
+packages/wp-plugin/build
+pnpm-lock.yaml
+.wordpress
+composer.lock
+websage-headless-master-prompt.md
+docs/ARCHITECTURE.md
+docs/DECISIONS.md
+docs/PROGRESS.md
+docs/superpowers

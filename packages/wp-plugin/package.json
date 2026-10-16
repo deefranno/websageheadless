@@ -1,0 +1,17 @@
+{
+  "name": "@websage/wp-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "wp-scripts build --webpack-src-dir=blocks --blocks-manifest",
+    "typecheck": "wp-scripts check-engines",
+    "test": "php tests/unit.php"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "36.1.0",
+    "@wordpress/blocks": "16.2.0",
+    "@wordpress/block-editor": "18.1.0",
+    "@wordpress/components": "42.0.0",
+    "@wordpress/i18n": "6.30.0"
+  }
+}
