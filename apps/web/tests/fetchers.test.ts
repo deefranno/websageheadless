@@ -67,11 +67,24 @@ describe('failure handling', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('rejects impossible paths as not found without a request', async () => {
-    await expect(getPage('/blog/../x')).rejects.toMatchObject({
-      kind: 'not_found',
-    });
+  it('returns null for impossible paths without a request', async () => {
+    await expect(getPage('/blog/../x')).resolves.toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns null only for a confirmed 404', async () => {
+    fetchMock.mockResolvedValueOnce(
+      Response.json(
+        { error: { code: 'not_found', message: 'x', requestId: 'r' } },
+        { status: 404 },
+      ),
+    );
+    await expect(getPage('/missing')).resolves.toBeNull();
+
+    fetchMock.mockResolvedValueOnce(Response.json({}, { status: 503 }));
+    await expect(getPage('/missing')).rejects.toMatchObject({
+      kind: 'unavailable',
+    });
   });
 });
 

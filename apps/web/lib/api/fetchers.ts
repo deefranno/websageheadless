@@ -10,7 +10,7 @@ import pageFixture from '@websage/contracts/fixtures/page-hero.json';
 import siteFixture from '@websage/contracts/fixtures/site-default.json';
 import { getServerConfig } from '../config';
 import { fetchApi } from './client';
-import { ApiError } from './errors';
+import { isNotFound } from './errors';
 
 /** Fallback lifetime; signed webhooks expire tags immediately in Phase 3. */
 export const PUBLIC_REVALIDATE_SECONDS = 300;
@@ -49,21 +49,25 @@ export async function getSite(): Promise<Site> {
 }
 
 /**
- * Validated page for a frontend path. Throws ApiError('not_found') only when
- * WordPress confirms absence; outages throw 'unavailable' and are not cached.
+ * Validated page for a frontend path, or null when WordPress confirms it does
+ * not exist (or is not public). Absence is cached under the same tag, so
+ * publishing the page invalidates it. Outages throw ApiError('unavailable')
+ * and are never cached.
  */
-export async function getPage(path: string): Promise<Page> {
+export async function getPage(path: string): Promise<Page | null> {
   'use cache';
   cacheTag(`page:${path}`);
   cacheLife(PUBLIC_CACHE_LIFE);
 
   const slug = pageSlugFor(path);
-  if (slug === null) {
-    throw new ApiError('not_found', `No CMS page can match ${path}`);
-  }
+  if (slug === null) return null;
   if (getServerConfig().fixtureMode) {
-    if (path !== '/') throw new ApiError('not_found', `No fixture for ${path}`);
-    return PageResponseSchema.parse(pageFixture).data;
+    return path === '/' ? PageResponseSchema.parse(pageFixture).data : null;
   }
-  return (await fetchApi(`/pages/${slug}`, PageResponseSchema)).data;
+  try {
+    return (await fetchApi(`/pages/${slug}`, PageResponseSchema)).data;
+  } catch (error) {
+    if (isNotFound(error)) return null;
+    throw error;
+  }
 }
