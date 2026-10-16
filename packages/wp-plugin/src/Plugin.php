@@ -25,6 +25,7 @@ use WebSage\HeadlessCore\Rest\Errors;
 use WebSage\HeadlessCore\Rest\Routes;
 use WebSage\HeadlessCore\Revalidation\Dispatcher;
 use WebSage\HeadlessCore\Revalidation\Events;
+use WebSage\HeadlessCore\Seed\Command;
 use WebSage\HeadlessCore\Security\Cors;
 use WebSage\HeadlessCore\Security\Hardening;
 use WebSage\HeadlessCore\Settings\Settings;
@@ -82,6 +83,10 @@ final class Plugin {
 		add_action( Submissions::RETENTION, array( Submissions::class, 'apply_retention' ) );
 		add_action( 'init', array( self::class, 'schedule' ) );
 		SubmissionsScreen::register();
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::add_command( 'websage', Command::class );
+		}
 
 		Events::register();
 		Dispatcher::register();
