@@ -1,0 +1,8 @@
+{
+  "name": "A Visitor",
+  "email": "visitor@example.com",
+  "message": "Please contact me.",
+  "website": "",
+  "consent": true,
+  "idempotencyKey": "86c1e718-ef94-4ca8-8e28-043850eedfa9"
+}

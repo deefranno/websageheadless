@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Please check the highlighted fields.",
+    "requestId": "0b1f5f0e-3c1d-4c43-9f2f-5a6a3ef7e0a1",
+    "fields": {
+      "email": "invalid",
+      "consent": "required"
+    }
+  }
+}
