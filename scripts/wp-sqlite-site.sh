@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Supplementary Docker-less WordPress site for local round-trip checks:
+# WordPress (SQLite drop-in) on `php -S`, behind a local HTTPS proxy with a
+# throwaway self-signed certificate. DDEV remains the supported environment.
+#
+#   scripts/wp-sqlite-site.sh start   # fresh site at https://localhost:8443
+#   scripts/wp-sqlite-site.sh stop
+#
+# Writes .wordpress/sqlite-site/e2e.env with the URL, admin credentials and
+# NODE_EXTRA_CA_CERTS for the frontend. Everything lives under .wordpress/.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SITE="$ROOT/.wordpress/sqlite-site"
+CORE="$ROOT/.wordpress/sqlite-core"
+HTTP_PORT=8081
+HTTPS_PORT=8443
+URL="https://localhost:$HTTPS_PORT"
+
+wp() { php "$ROOT/.tools/wp-cli/wp-cli.phar" --path="$SITE" "$@"; }
+
+stop() {
+  for pidfile in "$SITE"/*.pid; do
+    [[ -f "$pidfile" ]] && kill "$(cat "$pidfile")" 2>/dev/null || true
+    rm -f "$pidfile"
+  done
+}
+
+case "${1:-}" in
+  stop) stop; exit 0 ;;
+  start) ;;
+  *) echo "usage: $0 start|stop" >&2; exit 2 ;;
+esac
+
+[[ -d "$CORE" ]] || "$ROOT/scripts/wp-sqlite-test-env.sh"
+[[ -f "$ROOT/.tools/wp-cli/wp-cli.phar" ]] || { echo "WP-CLI missing at .tools/wp-cli/wp-cli.phar" >&2; exit 1; }
+
+stop
+rm -rf "$SITE"
+cp -a "$CORE" "$SITE"
+sed -i "s#$CORE#$SITE#" "$SITE/wp-content/db.php"
+ln -s "$ROOT/packages/wp-plugin" "$SITE/wp-content/plugins/websage-headless-core"
+
+openssl req -x509 -newkey rsa:2048 -nodes -days 2 -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost" \
+  -keyout "$SITE/tls.key" -out "$SITE/tls.crt" 2>/dev/null
+
+ADMIN_PASSWORD="$(openssl rand -hex 16)"
+wp config create --dbname=unused --dbuser=unused --dbpass=unused --skip-check --quiet --extra-php <<PHP
+if ( isset( \$_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === \$_SERVER['HTTP_X_FORWARDED_PROTO'] ) {
+	\$_SERVER['HTTPS'] = 'on';
+}
+define( 'WSH_FRONTEND_ORIGIN', 'https://www.example.com' );
+define( 'WP_ENVIRONMENT_TYPE', 'local' );
+PHP
+wp core install --url="$URL" --title="WebSage Demo" --admin_user=admin \
+  --admin_password="$ADMIN_PASSWORD" --admin_email=admin@example.com --skip-email --quiet
+wp option update permalink_structure '/%postname%/' --quiet  # rewrite structure breaks on paths with spaces
+
+cat > "$SITE/router.php" <<'PHP'
+<?php
+$path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+// Real files and directories (wp-admin/ -> its index.php) go to the built-in server.
+if ( '/' !== $path && ( is_file( __DIR__ . $path ) || is_dir( __DIR__ . $path ) ) ) {
+	return false;
+}
+require __DIR__ . '/index.php';
+PHP
+
+# Fully detached so callers piping this script's output are not held open.
+setsid php -S "127.0.0.1:$HTTP_PORT" -t "$SITE" "$SITE/router.php" </dev/null >"$SITE/php.log" 2>&1 &
+echo $! >"$SITE/php.pid"
+setsid node "$ROOT/scripts/tls-proxy.mjs" "$HTTPS_PORT" "$HTTP_PORT" "$SITE/tls.crt" "$SITE/tls.key" </dev/null >"$SITE/proxy.log" 2>&1 &
+echo $! >"$SITE/proxy.pid"
+for _ in $(seq 1 40); do
+  curl -fs --cacert "$SITE/tls.crt" -o /dev/null "$URL/wp-json/" && break
+  sleep 0.25
+done
+
+cat >"$SITE/e2e.env" <<ENV
+WSH_E2E_WP_URL='$URL'
+WSH_E2E_WP_USER='admin'
+WSH_E2E_WP_PASSWORD='$ADMIN_PASSWORD'
+NODE_EXTRA_CA_CERTS='$SITE/tls.crt'
+ENV
+echo "WordPress running at $URL (credentials in $SITE/e2e.env)"
