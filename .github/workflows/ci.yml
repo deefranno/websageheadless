@@ -109,8 +109,9 @@ jobs:
         run: |
           scripts/wp-sqlite-site.sh start
           # Fresh per-run secrets and URLs for the frontend; masked in logs.
-          sed "s/'//g" .wordpress/sqlite-site/e2e.env >> "$GITHUB_ENV"
-          for name in WSH_E2E_WP_PASSWORD WSH_SERVER_API_SECRET WSH_PREVIEW_SECRET WSH_REVALIDATION_SECRET; do
+          # $GITHUB_ENV accepts only NAME=value lines, so drop comments and blanks.
+          grep -Ev '^(#|$)' .wordpress/sqlite-site/e2e.env | sed "s/'//g" >> "$GITHUB_ENV"
+          for name in WSH_E2E_WP_PASSWORD WSH_SERVER_API_SECRET WSH_PREVIEW_SECRET WSH_REVALIDATION_SECRET WSH_RATE_LIMIT_SECRET; do
             echo "::add-mask::$(sed -n "s/^$name='\(.*\)'/\1/p" .wordpress/sqlite-site/e2e.env)"
           done
       - name: Build and start the frontend
