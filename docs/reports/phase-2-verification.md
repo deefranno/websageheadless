@@ -51,7 +51,7 @@ pnpm test:integration (Playwright, Chromium)             2 passed
 
 ## Known limitations and open items
 
-- **Soft 404s** (ADR-011, needs your decision): missing pages return 200 with `noindex`. Recommended follow-up: a `proxy.ts` existence check in Phase 3.
+- **Soft 404s** (ADR-011, approved 2026-10-16): missing pages return 200 with `noindex`; Phase 3 adds a `proxy.ts` existence check.
 - Process note: the plan asked for tests to fail first. Contract and PHP unit tests pre-existed; most web and integration tests were written alongside the implementation, so a red-then-green sequence was not observed for them.
 - DDEV commands (`websage-install`, `websage-test`) and the CI workflow are untested. The MariaDB image version and the DDEV `create_docroot` behaviour need a real run.
 - Google Fonts are downloaded at build time by `next/font` (self-hosted in output); offline builds fail.

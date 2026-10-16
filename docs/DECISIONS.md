@@ -84,11 +84,11 @@ Context: this workstation has no Docker; the plan forbids claiming activation or
 Decision: `scripts/wp-sqlite-test-env.sh` and `scripts/wp-sqlite-site.sh` run real WordPress 7.1.3 (SHA-1 verified download) with the official SQLite Database Integration 3.1.0 drop-in, `php -S` and a local TLS proxy. Used for local evidence and the CI Playwright job. Never shipped; not a runtime dependency.
 Alternatives: report everything as blocked until Docker is installed. Consequences: SQLite results are reported separately from MySQL. The CI `wordpress` job (MariaDB 11.4, PHP 8.1 and 8.3) and DDEV remain authoritative. Note: the SQLite plugin release was 8 days old at adoption; acceptable for test tooling only.
 
-## ADR-011 — Missing pages are soft 404s with noindex (proposed, needs owner approval)
+## ADR-011 — Missing pages are soft 404s with noindex (approved 2026-10-16)
 
 Context: the spec asks for `loading.tsx` on every route and a not-found state. Streaming commits HTTP 200 before the CMS lookup finishes, and Next.js 16 serves a prerendered fallback shell for catch-all routes. Tested: removing all Suspense boundaries and setting `instant = false` still returned 200 for `[...slug]`.
-Decision (proposed): keep streaming and loading states. Missing pages render the not-found UI client-side with `<meta name="robots" content="noindex">`, which Next.js injects; verified in the production build and by Playwright.
-Alternatives: (a) Phase 3 `proxy.ts` existence check against the cached `/routes` list to return a real 404 before rendering, recommended as a follow-up; (b) drop catch-all routing for explicit routes, which is not viable for CMS-defined paths. Consequences: crawlers see 200 plus noindex; the not-found message needs JavaScript.
+Decision (approved by owner 2026-10-16): keep streaming and loading states. Missing pages render the not-found UI client-side with `<meta name="robots" content="noindex">`, which Next.js injects; verified in the production build and by Playwright.
+Alternatives: (a) Phase 3 `proxy.ts` existence check against the cached `/routes` list to return a real 404 before rendering, scheduled as a Phase 3 follow-up; (b) drop catch-all routing for explicit routes, which is not viable for CMS-defined paths. Consequences: crawlers see 200 plus noindex; the not-found message needs JavaScript.
 
 ## ADR-012 — Smaller Foundation choices
 
