@@ -1,0 +1,74 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Brand colours and font choices are overridden at request
+ * time from WordPress settings (see components/layout/SiteTheme.tsx);
+ * everything else is the kit's fixed scale. Components use the Tailwind
+ * names below and never hard-code colours.
+ */
+:root {
+  --wsh-primary: #174f46;
+  --wsh-on-primary: #ffffff;
+  --wsh-background: #ffffff;
+  --wsh-foreground: #17201e;
+  --wsh-muted: #f2f5f4;
+  --wsh-on-muted: #35443f;
+  --wsh-border: #62736d;
+  --wsh-focus: #126bda;
+  --wsh-font-heading: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --wsh-font-body: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-primary: var(--wsh-primary);
+  --color-on-primary: var(--wsh-on-primary);
+  --color-background: var(--wsh-background);
+  --color-foreground: var(--wsh-foreground);
+  --color-muted: var(--wsh-muted);
+  --color-on-muted: var(--wsh-on-muted);
+  --color-border: var(--wsh-border);
+  --color-focus: var(--wsh-focus);
+
+  --font-heading: var(--wsh-font-heading);
+  --font-body: var(--wsh-font-body);
+}
+
+@theme {
+  --text-display: clamp(2.25rem, 1.6rem + 3vw, 3.75rem);
+  --text-display--line-height: 1.1;
+  --radius-control: 0.5rem;
+  --radius-panel: 1rem;
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.06), 0 8px 24px rgb(0 0 0 / 0.06);
+  --spacing-section: clamp(3rem, 2rem + 4vw, 6rem);
+}
+
+@layer base {
+  html {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

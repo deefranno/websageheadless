@@ -17,3 +17,5 @@ packages/wp-plugin/build/
 playwright-report/
 test-results/
 .phpunit.cache/
+*.tsbuildinfo
+next-env.d.ts
