@@ -17,13 +17,9 @@ minimumReleaseAgeExclude:
   - eslint-config-next@16.4.2
   - next@16.4.2
   - vitest@5.0.5
-onlyBuiltDependencies:
-  - sharp
-  - unrs-resolver
-  - '@parcel/watcher'
-  - esbuild
-  - '@swc/core'
-ignoredBuiltDependencies:
-  - core-js
-  - core-js-pure
 verifyDepsBeforeRun: false
+allowBuilds:
+  '@parcel/watcher': false
+  core-js: false
+  core-js-pure: false
+  unrs-resolver: false
