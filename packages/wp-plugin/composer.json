@@ -1,0 +1,75 @@
+{
+  "name": "websage/headless-core",
+  "description": "WebSage Headless Core: WordPress as a headless CMS for the WebSage Headless Next.js frontend.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.1",
+    "cmb2/cmb2": "2.13.4"
+  },
+  "require-dev": {
+    "dealerdirect/phpcodesniffer-composer-installer": "1.2.1",
+    "php-stubs/wordpress-stubs": "7.1.2",
+    "phpcompatibility/phpcompatibility-wp": "2.1.8",
+    "phpstan/phpstan": "2.3.1",
+    "phpunit/phpunit": "9.6.38",
+    "szepeviktor/phpstan-wordpress": "2.0.4",
+    "websage-test/cmb2-legacy": "2.11.0",
+    "wp-coding-standards/wpcs": "3.4.1",
+    "wp-phpunit/wp-phpunit": "7.1.1",
+    "yoast/phpunit-polyfills": "4.0.0"
+  },
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "name": "websage-test/cmb2-legacy",
+        "version": "2.11.0",
+        "description": "Older CMB2 release used only by the coexistence test; never shipped.",
+        "dist": {
+          "type": "zip",
+          "url": "https://github.com/CMB2/CMB2/archive/refs/tags/v2.11.0.zip"
+        }
+      }
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "WebSage\\HeadlessCore\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WebSage\\HeadlessCore\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true,
+    "platform": {
+      "php": "8.1.0"
+    },
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "lint": "phpcs",
+    "analyse": "phpstan analyse --memory-limit=1G --no-progress",
+    "test:unit": "phpunit",
+    "test:integration": [
+      "@putenv WSH_CMB2_ORDER=legacy-first",
+      "phpunit -c phpunit-integration.xml.dist",
+      "@putenv WSH_CMB2_ORDER=bundled-first",
+      "phpunit -c phpunit-integration.xml.dist"
+    ],
+    "check": [
+      "@lint",
+      "@analyse",
+      "@test:unit"
+    ]
+  },
+  "scripts-descriptions": {
+    "test:integration": "Runs the WordPress suite twice, once per CMB2 load order. Needs WP_CORE_DIR and a disposable test database."
+  }
+}

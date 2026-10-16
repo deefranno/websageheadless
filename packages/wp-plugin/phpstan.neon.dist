@@ -1,0 +1,12 @@
+includes:
+  - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+  level: 8
+  phpVersion: 80100
+  paths:
+    - websage-headless-core.php
+    - uninstall.php
+    - src
+  bootstrapFiles:
+    - tests/phpstan-constants.php

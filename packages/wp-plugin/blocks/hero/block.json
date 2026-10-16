@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "websage/hero",
+  "version": "1.0.0",
+  "title": "Hero",
+  "category": "design",
+  "icon": "cover-image",
+  "description": "Page-opening section with heading, text, image and up to two links.",
+  "keywords": ["banner", "header", "intro"],
+  "textdomain": "websage-headless",
+  "attributes": {
+    "schemaVersion": { "type": "integer" },
+    "eyebrow": { "type": "string", "default": "" },
+    "heading": { "type": "string", "default": "" },
+    "body": { "type": "string", "default": "" },
+    "imageId": { "type": "integer" },
+    "primary": { "type": "object" },
+    "secondary": { "type": "object" },
+    "theme": {
+      "type": "string",
+      "enum": ["default", "muted", "brand"],
+      "default": "default"
+    }
+  },
+  "supports": {
+    "html": false,
+    "reusable": false
+  },
+  "editorScript": "file:./index.js"
+}

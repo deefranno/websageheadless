@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "build": "wp-scripts build --webpack-src-dir=blocks --blocks-manifest",
-    "typecheck": "wp-scripts check-engines",
-    "test": "php tests/unit.php"
+    "lint": "composer lint",
+    "typecheck": "composer analyse",
+    "test": "composer test:unit",
+    "test:integration": "composer test:integration"
   },
   "devDependencies": {
     "@wordpress/scripts": "36.1.0",
