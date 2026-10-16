@@ -69,7 +69,13 @@ scripts/wp-sqlite-test-env.sh            # WordPress 7.1.3 + SQLite drop-in in .
 WP_CORE_DIR="$PWD/.wordpress/sqlite-core" composer --working-dir=packages/wp-plugin test:integration
 
 scripts/wp-sqlite-site.sh start          # disposable site at https://localhost:8443 (self-signed TLS)
-# credentials and NODE_EXTRA_CA_CERTS are written to .wordpress/sqlite-site/e2e.env
+# Also: HTTPS front for Next.js at https://localhost:3443 -> http://127.0.0.1:3000,
+# fresh shared secrets, a front page, and WebSage Headless Core activated.
+# URLs, credentials, secrets and NODE_EXTRA_CA_CERTS are in .wordpress/sqlite-site/e2e.env
+set -a; . .wordpress/sqlite-site/e2e.env; set +a
+pnpm --filter @websage/web build && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/
+PORT=3000 node apps/web/.next/standalone/apps/web/server.js &   # keep the default HOSTNAME
+pnpm test:integration
 scripts/wp-sqlite-site.sh stop
 ```
 
@@ -92,7 +98,7 @@ WordPress reads `WSH_FRONTEND_ORIGIN` (wp-config constant or server environment)
 
 ## Known Phase 2 limitations
 
-- A missing page returns HTTP 200 with a `noindex` robots tag (a "soft 404"), and the not-found message renders client-side. See ADR-011.
-- `/site` returns plugin defaults plus the real site title; settings, menus and SEO fields arrive in Phase 3.
-- The blog routes are placeholders until Phase 4.
+- Unknown paths get a real 404 from proxy.ts; a page that disappears between the route check and rendering still gets the noindex soft 404 (ADR-011, ADR-015).
+- Only the hero and core-content sections have visual components; the other section types render nothing in production until Phase 4.
+- The blog index is a placeholder and posts have a minimal view until Phase 4.
 - Static export is not supported (preview, contact and revalidation need a server).

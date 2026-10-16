@@ -36,3 +36,15 @@ Not verified: DDEV environment and its commands (no Docker on this machine).
 ADR-011 approved 2026-10-16: soft 404 with noindex now; Phase 3 adds a proxy existence check for real 404 status.
 
 Next: owner review of the Phase 2 gate; run `ddev websage-install`/`websage-test` on a Docker host; then Phase 3.
+
+## Phase 3 — CMS Integration, implemented; awaiting gate review
+
+Plan: `docs/superpowers/plans/2026-10-16-cms-integration.md`. Branch `feat/cms-integration`.
+
+Done: contracts for every section, posts, routes (with noindex flag), preview and webhook events; versioned settings with a CMB2 options page (six tabs, explicit validation, contrast rollback), SEO and testimonial metaboxes; testimonial, CTA and private submission post types; menus as link trees; all catalogue blocks with editor UI, core-content normalization, synced patterns and library references; real `/site`, `/pages`, `/posts`, `/posts/{slug}`, `/routes` and authenticated `/preview/{id}`; signed webhooks with retries; nonce-protected preview links with 5-minute tokens; diagnostics page; CMS hardening; CORS closed on the namespace. Frontend: revalidation handler, Draft Mode preview with sealed grant cookie, proxy.ts real 404s, posts/routes/preview fetchers, core-content renderer, minimal post view.
+
+Verified here (details in `docs/reports/phase-3-verification.md`): root lint/typecheck/test/build pass; PHP integration 53/53 in both CMB2 orders; Playwright 7/7 twice on the SQLite harness covering freshness, settings, preview, forged preview, diagnostics, editor round trip and real 404s.
+
+Not verified yet: CI on the branch (needs a push); DDEV.
+
+Next: push `feat/cms-integration`, confirm CI, owner review of the Phase 3 gate, then Phase 4 (section components, contact form, blog, SEO metadata, sitemap, seed).

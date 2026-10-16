@@ -84,7 +84,7 @@ Context: this workstation has no Docker; the plan forbids claiming activation or
 Decision: `scripts/wp-sqlite-test-env.sh` and `scripts/wp-sqlite-site.sh` run real WordPress 7.1.3 (SHA-1 verified download) with the official SQLite Database Integration 3.1.0 drop-in, `php -S` and a local TLS proxy. Used for local evidence and the CI Playwright job. Never shipped; not a runtime dependency.
 Alternatives: report everything as blocked until Docker is installed. Consequences: SQLite results are reported separately from MySQL. The CI `wordpress` job (MariaDB 11.4, PHP 8.1 and 8.3) and DDEV remain authoritative. Note: the SQLite plugin release was 8 days old at adoption; acceptable for test tooling only.
 
-## ADR-011 — Missing pages are soft 404s with noindex (approved 2026-10-16)
+## ADR-011 — Missing pages: noindex soft 404 at render, real 404 from proxy (approved 2026-10-16; follow-up shipped in Phase 3)
 
 Context: the spec asks for `loading.tsx` on every route and a not-found state. Streaming commits HTTP 200 before the CMS lookup finishes, and Next.js 16 serves a prerendered fallback shell for catch-all routes. Tested: removing all Suspense boundaries and setting `instant = false` still returned 200 for `[...slug]`.
 Decision (approved by owner 2026-10-16): keep streaming and loading states. Missing pages render the not-found UI client-side with `<meta name="robots" content="noindex">`, which Next.js injects; verified in the production build and by Playwright.
@@ -98,3 +98,28 @@ Alternatives: (a) Phase 3 `proxy.ts` existence check against the cached `/routes
 - SEO description defaults to the WordPress tagline until the Phase 3 SEO metabox.
 - PHPCS prefix `wsh_` (four characters, satisfying WPCS) matches the approved hook/option prefix. Exception messages are excluded from output-escaping sniffs because they are log-only.
 - WP-CLI `rewrite structure` fails on paths containing spaces (it spawns an unquoted subprocess); scripts set `permalink_structure` directly.
+
+## ADR-013 — Settings screen and storage (Phase 3)
+
+Context: the spec asks for one plugin-owned admin page with tabs, a single `wsh_settings` option, explicit sanitization, and validators that reject rather than convert.
+Decision: one CMB2 options page whose `option_key` is `wsh_settings`, so its admin slug is `wsh_settings` (CMB2 derives the page slug from the option key; the architecture's `wsh-settings` was not achievable without a second option). Tabs are a small progressive-enhancement script; without JavaScript all sections show. Invalid values keep the previously stored value and show a notice. Colour pairs whose WCAG contrast drops below 4.5:1 are rolled back after save. Settings use `{title}`/`{site}` placeholders (not `%title%`) to avoid printf-style strings in translations. CMB2 removes keys whose value is empty; `Settings::all()` restores defaults, so readers never see missing keys.
+Consequences: CMB2 caches the option per request, so plugin code that writes the option during a CMB2 save goes through `cmb2_options()->set()`.
+
+## ADR-014 — Next.js behind a TLS proxy (Phase 3)
+
+Context: verified in the harness with Next.js 16.4.2 standalone. When the server is bound to a specific IP (`HOSTNAME=127.0.0.1`) and the reverse proxy sends `X-Forwarded-Proto: https`, proxy.ts rewrites are treated as external and fail with HTTP 500. With the default `HOSTNAME` (`0.0.0.0`) they work, and direct requests work in every configuration.
+Decision: run the standalone server with the default HOSTNAME behind the reverse proxy, restricting access with the firewall or proxy instead of the bind address. Rewrites clone `request.nextUrl`. Redirects in preview routes use `FRONTEND_ORIGIN` when set, because `request.url` behind a proxy is the internal URL.
+Consequences: Phase 6 deployment docs must state this. Re-test when Next.js is upgraded.
+
+## ADR-015 — Cache tags, routes and the 404 check (Phase 3)
+
+Decision: page and post data are tagged with their own tag and `site`, because settings (title template, canonical origin, branding) shape every page; settings and menu changes are rare, so invalidating everything then is acceptable. `/routes` now lists every public URL with a `noindex` flag (contract change), because proxy.ts must not 404 pages that exist but are hidden from search; the sitemap filters on the flag. proxy.ts keeps a per-instance route list (60 s TTL), refetches once on a miss (at most every 5 s) so new pages work immediately, and fails open on any error so outages never become 404s. Previews (Draft Mode or grant cookie) skip the check. Alternatives: an existence check per request (adds a CMS round trip to every page view); a shared cache between proxy and app (proxy may be deployed separately, per Next.js guidance).
+
+## ADR-016 — Revalidation delivery and preview grants (Phase 3)
+
+Decision: the plugin merges events per request and sends them at shutdown, signed per ADR-004, to `WSH_REVALIDATE_URL` (HTTPS only) or `{frontend}/api/revalidate`. Network errors, 5xx and 429 retry after 10, 60 and 300 s via WP-Cron with fresh signatures; other 4xx (bad signature, invalid event) are not retried. Tags are checked against the shared grammar before sending. The preview grant is the signed token itself, stored in an AES-256-GCM sealed HttpOnly SameSite=Lax cookie keyed by HKDF from `WSH_PREVIEW_SECRET`, and re-verified on every preview render. Drafts without a slug preview at `/preview-{id}` (or `/blog/preview-{id}`). The admin preview link is a raw URL with a nonce, because the editor uses it unescaped.
+Consequences: settings and menus are not previewable (they have no drafts). Real cron is recommended in production for prompt retries; diagnostics warn when retries are overdue.
+
+## ADR-017 — Hardening defaults (Phase 3)
+
+Decision: on by default and individually switchable in the Integration tab: noindex and a 301 redirect of public CMS front-end requests to the website (wp-admin, login, REST, cron and media unaffected; never redirects to the same scheme, host and port); the core sitemap disabled; XML-RPC refused with 403; anonymous REST user listing and author archives blocked. Library post types are available over core REST only to users who can edit posts (the block editor needs them). Submissions have no REST route and no public URL.
