@@ -1,12 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Site } from '@websage/contracts';
+import { DesktopNav } from '@/components/navigation/DesktopNav';
+import { MobileMenu } from '@/components/navigation/MobileMenu';
 import { SmartLink } from '@/components/ui/SmartLink';
 
 export function Header({ site }: { site: Site }) {
   const { announcement, announcementLink } = site.header;
   return (
-    <header className="border-b border-border/30 bg-background">
+    <header className="relative border-b border-border/30 bg-background">
       {announcement ? (
         <p className="bg-primary px-4 py-2 text-center text-sm text-on-primary">
           {announcementLink ? (
@@ -22,8 +24,11 @@ export function Header({ site }: { site: Site }) {
           )}
         </p>
       ) : null}
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" className="font-heading text-xl font-bold">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center font-heading text-xl font-bold"
+        >
           {site.branding.logo ? (
             <Image
               src={site.branding.logo.url}
@@ -37,23 +42,8 @@ export function Header({ site }: { site: Site }) {
             site.name
           )}
         </Link>
-        {site.menus.primary.length > 0 ? (
-          <nav aria-label="Primary">
-            <ul className="flex flex-wrap gap-x-6 gap-y-2">
-              {site.menus.primary.map((item) => (
-                <li key={`${item.href}-${item.label}`}>
-                  <SmartLink
-                    href={item.href}
-                    newTab={item.newTab}
-                    className="font-medium hover:underline"
-                  >
-                    {item.label}
-                  </SmartLink>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ) : null}
+        <DesktopNav items={site.menus.primary} />
+        <MobileMenu items={site.menus.primary} />
       </div>
     </header>
   );
@@ -63,7 +53,7 @@ export function Header({ site }: { site: Site }) {
 export function HeaderFallback() {
   return (
     <header
-      className="h-[4.5rem] border-b border-border/30 bg-background"
+      className="h-[4.25rem] border-b border-border/30 bg-background"
       aria-hidden="true"
     />
   );
