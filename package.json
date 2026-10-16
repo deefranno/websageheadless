@@ -7,7 +7,7 @@
     "node": ">=24.22.0 <25"
   },
   "scripts": {
-    "lint": "eslint . && prettier --check .",
+    "lint": "eslint . && prettier --check . && pnpm --filter @websage/wp-plugin lint",
     "format": "prettier --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
@@ -16,9 +16,10 @@
     "php:check": "composer --working-dir=packages/wp-plugin check"
   },
   "devDependencies": {
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.4.2",
     "prettier": "3.9.10",
     "typescript": "5.9.3",
-    "eslint": "9.39.1",
     "vitest": "5.0.5"
   }
 }

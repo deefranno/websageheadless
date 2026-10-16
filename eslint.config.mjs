@@ -1,6 +1,7 @@
-import nextVitals from './apps/web/node_modules/eslint-config-next/core-web-vitals.js';
-import nextTypescript from './apps/web/node_modules/eslint-config-next/typescript.js';
-export default [
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
+
+const config = [
   ...nextVitals,
   ...nextTypescript,
   {
@@ -15,5 +16,11 @@ export default [
       '.wordpress/**',
     ],
   },
-  { settings: { next: { rootDir: 'apps/web/' } } },
+  {
+    settings: { next: { rootDir: 'apps/web/' }, react: { version: '19.3' } },
+    // App Router only; the Pages Router rule has nothing to check.
+    rules: { '@next/next/no-html-link-for-pages': 'off' },
+  },
 ];
+
+export default config;
