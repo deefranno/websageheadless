@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+## Description: Run the plugin's WordPress integration suite against a separate, disposable test database.
+## Usage: websage-test
+## Example: ddev websage-test
+set -euo pipefail
+
+DOCROOT="/var/www/html/.wordpress/site"
+PLUGIN_SRC="/var/www/html/packages/wp-plugin"
+
+if [[ ! -f "$DOCROOT/wp-load.php" ]]; then
+  echo "WordPress core is missing; run ddev websage-install first." >&2
+  exit 1
+fi
+
+# The suite drops every table in this database. It is never the site database.
+mysql -uroot -proot -hdb -e "CREATE DATABASE IF NOT EXISTS wordpress_test; GRANT ALL ON wordpress_test.* TO 'db'@'%';"
+
+composer install --working-dir="$PLUGIN_SRC" --no-interaction --quiet
+cd "$PLUGIN_SRC"
+WP_CORE_DIR="$DOCROOT" WP_TESTS_DB_HOST=db composer test:integration

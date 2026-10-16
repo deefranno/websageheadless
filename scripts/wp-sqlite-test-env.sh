@@ -5,6 +5,7 @@
 # authoritative environment; results from this harness are reported separately.
 #
 # Usage: scripts/wp-sqlite-test-env.sh            # prepare .wordpress/sqlite-core
+#        scripts/wp-sqlite-test-env.sh --mysql    # plain core in .wordpress/mysql-core (CI)
 #        eval "$(scripts/wp-sqlite-test-env.sh --env)"  # export test variables
 set -euo pipefail
 
@@ -13,7 +14,10 @@ SQLITE_VERSION="3.1.0"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TARGET="$ROOT/.wordpress/sqlite-core"
 
-if [[ "${1:-}" == "--env" ]]; then
+MODE="${1:-}"
+[[ "$MODE" == "--mysql" ]] && TARGET="$ROOT/.wordpress/mysql-core"
+
+if [[ "$MODE" == "--env" ]]; then
   echo "export WP_CORE_DIR='$TARGET'"
   exit 0
 fi
@@ -27,14 +31,19 @@ if [[ ! -f "wordpress-$WP_VERSION.tar.gz" ]]; then
 fi
 echo "$(cat "wordpress-$WP_VERSION.tar.gz.sha1")  wordpress-$WP_VERSION.tar.gz" | sha1sum -c -
 
+rm -rf "$TARGET"
+mkdir -p "$TARGET/wp-content/uploads"
+tar -xzf "wordpress-$WP_VERSION.tar.gz" -C "$TARGET" --strip-components=1
+if [[ "$MODE" == "--mysql" ]]; then
+  echo "Prepared WordPress $WP_VERSION at $TARGET"
+  exit 0
+fi
+
 if [[ ! -f "sqlite-database-integration-$SQLITE_VERSION.zip" ]]; then
   curl -fsSLo "sqlite-database-integration-$SQLITE_VERSION.zip" \
     "https://downloads.wordpress.org/plugin/sqlite-database-integration.$SQLITE_VERSION.zip"
 fi
 
-rm -rf "$TARGET"
-mkdir -p "$TARGET"
-tar -xzf "wordpress-$WP_VERSION.tar.gz" -C "$TARGET" --strip-components=1
 python3 -I -m zipfile -e "sqlite-database-integration-$SQLITE_VERSION.zip" "$TARGET/wp-content/plugins/"
 sed -e "s#{SQLITE_IMPLEMENTATION_FOLDER_PATH}#$TARGET/wp-content/plugins/sqlite-database-integration#" \
     -e "s#{SQLITE_PLUGIN}#sqlite-database-integration/load.php#" \

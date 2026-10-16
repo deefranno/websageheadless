@@ -1,0 +1,128 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - uses: shivammathur/setup-php@4424c9aab975b57bd706ee5a39c6b4334d6e4f60 # 2.40.0
+        with:
+          php-version: '8.3'
+          tools: composer:2.10.3
+          coverage: none
+      - run: pnpm install --frozen-lockfile
+      - run: composer install --working-dir=packages/wp-plugin --no-interaction --no-progress
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  wordpress:
+    name: WordPress integration (PHP ${{ matrix.php }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.3']
+    services:
+      mysql:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: wordpress_test
+          MARIADB_USER: db
+          MARIADB_PASSWORD: db
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - uses: shivammathur/setup-php@4424c9aab975b57bd706ee5a39c6b4334d6e4f60 # 2.40.0
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli
+          tools: composer:2.10.3
+          coverage: none
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @websage/wp-plugin build
+      - run: composer install --working-dir=packages/wp-plugin --no-interaction --no-progress
+      - run: scripts/wp-sqlite-test-env.sh --mysql
+      - name: PHPUnit (unit + integration, both CMB2 load orders)
+        working-directory: packages/wp-plugin
+        env:
+          WP_CORE_DIR: ${{ github.workspace }}/.wordpress/mysql-core
+          WP_TESTS_DB_HOST: 127.0.0.1:3306
+        run: |
+          composer test:unit
+          composer test:integration
+
+  e2e:
+    name: Editor-to-frontend round trip
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@d9184bf108216479bc5a137cc391f4d7b14c870b # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - uses: shivammathur/setup-php@4424c9aab975b57bd706ee5a39c6b4334d6e4f60 # 2.40.0
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite
+          tools: composer:2.10.3
+          coverage: none
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @websage/wp-plugin build
+      - run: composer install --working-dir=packages/wp-plugin --no-interaction --no-progress --no-dev
+      - name: Download WP-CLI
+        run: |
+          mkdir -p .tools/wp-cli && cd .tools/wp-cli
+          curl -fsSLO https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar.sha512 -o wp-cli.phar.sha512
+          echo "$(cat wp-cli.phar.sha512)  wp-cli.phar" | sha512sum -c -
+      - name: Start disposable WordPress (SQLite)
+        run: |
+          scripts/wp-sqlite-site.sh start
+          php .tools/wp-cli/wp-cli.phar --path=.wordpress/sqlite-site plugin activate websage-headless-core
+          cat .wordpress/sqlite-site/e2e.env | sed "s/'//g" | grep -v PASSWORD >> "$GITHUB_ENV"
+          echo "WSH_E2E_WP_PASSWORD=$(sed -n "s/^WSH_E2E_WP_PASSWORD='\(.*\)'/\1/p" .wordpress/sqlite-site/e2e.env)" >> "$GITHUB_ENV"
+      - name: Build and start the frontend
+        env:
+          WORDPRESS_MEDIA_HOST: localhost:8443
+        run: |
+          pnpm --filter @websage/web build
+          cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/
+          PORT=3000 HOSTNAME=127.0.0.1 WP_API_ORIGIN=https://localhost:8443 \
+            nohup node apps/web/.next/standalone/apps/web/server.js > next.log 2>&1 &
+          for _ in $(seq 1 60); do curl -fs -o /dev/null http://127.0.0.1:3000/blog && break; sleep 1; done
+      - run: pnpm --filter @websage/web exec playwright install --with-deps chromium
+      - run: pnpm test:integration
+        env:
+          WSH_E2E_WEB_URL: http://127.0.0.1:3000
+      - if: failure()
+        run: cat next.log .wordpress/sqlite-site/php.log || true

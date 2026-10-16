@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+## Description: Install pinned WordPress with only WebSage Headless Core active. Never touches an existing install.
+## Usage: websage-install
+## Example: ddev websage-install
+set -euo pipefail
+
+WP_VERSION="7.1.3"
+DOCROOT="/var/www/html/.wordpress/site"
+PLUGIN_SRC="/var/www/html/packages/wp-plugin"
+
+if wp core is-installed --path="$DOCROOT" >/dev/null 2>&1; then
+  echo "WordPress is already installed in $DOCROOT; nothing was changed."
+  exit 0
+fi
+
+if [[ ! -f "$PLUGIN_SRC/build/blocks-manifest.php" ]]; then
+  echo "Block assets are missing. On the host run: pnpm install && pnpm --filter @websage/wp-plugin build" >&2
+  exit 1
+fi
+composer install --working-dir="$PLUGIN_SRC" --no-interaction --quiet
+
+if [[ ! -f "$DOCROOT/wp-load.php" ]]; then
+  wp core download --version="$WP_VERSION" --path="$DOCROOT" --skip-content
+fi
+# --skip-content omits default themes; install one for the (noindexed) CMS front end.
+password="$(openssl rand -hex 16)"
+wp core install --path="$DOCROOT" --url="$DDEV_PRIMARY_URL" --title="WebSage Demo" \
+  --admin_user=admin --admin_password="$password" --admin_email=admin@example.com --skip-email
+wp theme install twentytwentyfive --activate --path="$DOCROOT"
+wp option update permalink_structure '/%postname%/' --path="$DOCROOT"
+
+mkdir -p "$DOCROOT/wp-content/plugins"
+ln -sfn "$PLUGIN_SRC" "$DOCROOT/wp-content/plugins/websage-headless-core"
+wp plugin activate websage-headless-core --path="$DOCROOT"
+wp plugin list --path="$DOCROOT"
+
+echo
+echo "WordPress: $DDEV_PRIMARY_URL/wp-admin/  user: admin  password: $password"
+echo "Store this password now; it is not saved anywhere."

@@ -1,0 +1,18 @@
+# Local WordPress for WebSage Headless. Requires Docker Engine (or another
+# DDEV-supported provider) and DDEV; Docker Desktop is not required on Linux.
+#   ddev start && ddev websage-install && ddev websage-test
+name: websage-headless
+type: wordpress
+# Runtime WordPress lives outside the authored source tree and out of Git.
+docroot: .wordpress/site
+create_docroot: true
+php_version: '8.3'
+webserver_type: nginx-fpm
+database:
+  type: mariadb
+  version: '11.4'
+upload_dirs:
+  - wp-content/uploads
+web_environment:
+  # Canonical URLs only; the local Next.js dev server need not serve HTTPS.
+  - WSH_FRONTEND_ORIGIN=https://localhost:3000
