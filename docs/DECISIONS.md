@@ -123,3 +123,16 @@ Consequences: settings and menus are not previewable (they have no drafts). Real
 ## ADR-017 — Hardening defaults (Phase 3)
 
 Decision: on by default and individually switchable in the Integration tab: noindex and a 301 redirect of public CMS front-end requests to the website (wp-admin, login, REST, cron and media unaffected; never redirects to the same scheme, host and port); the core sitemap disabled; XML-RPC refused with 403; anonymous REST user listing and author archives blocked. Library post types are available over core REST only to users who can edit posts (the block editor needs them). Submissions have no REST route and no public URL.
+
+## ADR-018 — Contact form flow (Phase 4)
+
+Decision: browser → `POST /api/contact` (same-origin, 16 KiB, shared Zod schema) → `POST /websage/v1/contact` (server API secret). The client is identified by HMAC-SHA256(trusted client IP + UTC date) with `WSH_RATE_LIMIT_SECRET`; WordPress never sees the address. The trusted IP comes only from the header named in `WSH_CLIENT_IP_HEADER` (for `X-Forwarded-For`, the entry `WSH_TRUSTED_PROXY_HOPS` back from the end); unset in production → 503, never a guess. WordPress enforces 5 accepted attempts per 15-minute fixed window per client with one atomic `INSERT … ON DUPLICATE KEY UPDATE` on a plugin table (verified on SQLite and in CI on MariaDB). Validation errors do not count; honeypot hits do. Idempotency keys are checked before the limit, so a retried submission never consumes quota. Messages are stored privately before mail; mail failures retry after 5, 30 and 120 minutes. The visitor's address appears only in the mail body, never in headers. Turnstile is optional (server-side verification; CSP opened for Cloudflare only when a site key is set).
+Alternatives: fixed-window vs sliding log (sliding needs more storage per client; fixed window is adequate at 5/15 min); trusting the left-most `X-Forwarded-For` (spoofable).
+
+## ADR-019 — Demo seed (Phase 4)
+
+Decision: `wp websage seed` upserts by `_wsh_seed_id`; a second run reports 0 created. It overwrites the two demo menus and demo settings keys (merged, other settings kept), sets the static front page, and never deletes content it did not create (so WordPress's sample post stays). No images are seeded, to keep the plugin zip free of demo media; image rendering is covered by component tests.
+
+## ADR-020 — Metadata, sitemap and robots (Phase 4)
+
+Decision: `generateMetadata`, `sitemap.xml` and page bodies read CMS data at request time (after `connection()`), from the tag-cached fetchers, so builds never need WordPress. `robots.txt` is static: `FRONTEND_ORIGIN` must be set at build time for its `Sitemap:` line. The sitemap lists only routes without `noindex`. JSON-LD escapes `<`. Articles use the organization as author, because the API never exposes WordPress authors.

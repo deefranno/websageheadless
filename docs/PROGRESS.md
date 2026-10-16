@@ -48,3 +48,15 @@ Verified here (details in `docs/reports/phase-3-verification.md`): root lint/typ
 Not verified yet: CI on the branch (needs a push); DDEV.
 
 Next: push `feat/cms-integration`, confirm CI, owner review of the Phase 3 gate, then Phase 4 (section components, contact form, blog, SEO metadata, sitemap, seed).
+
+## Phase 4 — Website Features, implemented; awaiting gate review
+
+Plan: `docs/superpowers/plans/2026-10-16-website-features.md`. Branch `feat/website-features`.
+
+Done: contact contracts; every section component (text-image, feature grid, CTA, testimonials, FAQ, contact) with one h1 per page; desktop navigation with keyboard submenus, mobile menu, footer contact details and back-to-top; contact form end to end (Next.js handler with proxy-trust that fails closed, WordPress endpoint with atomic rate limit, idempotency, honeypot, private storage, mail with retries, retention); blog index with pagination and categories, full post page; metadata, sitemap, robots, JSON-LD; `wp websage seed`.
+
+Verified here (details in `docs/reports/phase-4-verification.md`): root lint/typecheck/test pass; contracts 109, web 101, PHP unit 30; PHP integration 64/64 in both CMB2 orders; Playwright 21/21 on two consecutive runs against the seeded harness; real WP-CLI seed re-run "0 created, 20 updated".
+
+Not verified yet: CI on the branch (needs a push and a PR); DDEV.
+
+Next: push `feat/website-features`, open the PR, confirm CI, owner review of the Phase 4 gate, then Phase 5 (testing and hardening: axe, Lighthouse, security review, rebranding test).
