@@ -16,13 +16,19 @@ if (mediaHost && !/^[a-z0-9.-]+(?::\d+)?$/i.test(mediaHost)) {
  * bootstrap scripts therefore need 'unsafe-inline'. A nonce policy arrives
  * with preview routes in Phase 3.
  */
+/** Optional Cloudflare Turnstile: allowed only when a site key is configured. */
+const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  ? ' https://challenges.cloudflare.com'
+  : '';
+
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline'${isProduction ? '' : " 'unsafe-eval'"}${turnstile}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob:${mediaHost ? ` https://${mediaHost}` : ''}`,
   "font-src 'self'",
-  `connect-src 'self'${isProduction ? '' : ' ws:'}`,
+  `connect-src 'self'${isProduction ? '' : ' ws:'}${turnstile}`,
+  `frame-src ${turnstile ? turnstile.trim() : "'none'"}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

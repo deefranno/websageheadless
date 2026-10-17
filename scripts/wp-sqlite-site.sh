@@ -56,6 +56,7 @@ ADMIN_PASSWORD="$(openssl rand -hex 16)"
 SERVER_API_SECRET="$(openssl rand -hex 32)"
 PREVIEW_SECRET="$(openssl rand -hex 32)"
 REVALIDATION_SECRET="$(openssl rand -hex 32)"
+RATE_LIMIT_SECRET="$(openssl rand -hex 32)"
 wp config create --dbname=unused --dbuser=unused --dbpass=unused --skip-check --quiet --extra-php <<PHP
 if ( isset( \$_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === \$_SERVER['HTTP_X_FORWARDED_PROTO'] ) {
 	\$_SERVER['HTTPS'] = 'on';
@@ -106,10 +107,8 @@ for _ in $(seq 1 40); do
 done
 
 wp plugin activate websage-headless-core --quiet
-home_id="$(wp post create --post_type=page --post_status=publish --post_title=Home --post_name=home --porcelain \
-  --post_content='<!-- wp:websage/hero {"heading":"Welcome home"} /-->')"
-wp option update show_on_front page --quiet
-wp option update page_on_front "$home_id" --quiet
+# Demo content (also sets the static front page).
+wp websage seed --yes --quiet
 
 cat >"$SITE/e2e.env" <<ENV
 WSH_E2E_WP_URL='$URL'
@@ -122,5 +121,10 @@ FRONTEND_ORIGIN='$WEB_URL'
 WSH_SERVER_API_SECRET='$SERVER_API_SECRET'
 WSH_PREVIEW_SECRET='$PREVIEW_SECRET'
 WSH_REVALIDATION_SECRET='$REVALIDATION_SECRET'
+WSH_RATE_LIMIT_SECRET='$RATE_LIMIT_SECRET'
+# Tests may send their own X-Forwarded-For (a simulated CDN hop); the TLS
+# proxy appends the connecting address, so the client is two hops back.
+WSH_CLIENT_IP_HEADER='x-forwarded-for'
+WSH_TRUSTED_PROXY_HOPS='2'
 ENV
 echo "WordPress running at $URL (credentials in $SITE/e2e.env)"

@@ -4,8 +4,14 @@ import {
   type KnownSection,
   type Section,
 } from '@websage/contracts';
+import { Contact } from '@/components/sections/Contact';
 import { CoreContent } from '@/components/sections/CoreContent';
+import { Cta } from '@/components/sections/Cta';
+import { Faq } from '@/components/sections/Faq';
+import { FeatureGrid } from '@/components/sections/FeatureGrid';
 import { Hero } from '@/components/sections/Hero';
+import { Testimonials } from '@/components/sections/Testimonials';
+import { TextImage } from '@/components/sections/TextImage';
 
 interface SectionProps<T> {
   section: T;
@@ -25,6 +31,12 @@ type Registry = {
  */
 const registry: Registry = {
   hero: Hero,
+  'text-image': TextImage,
+  'feature-grid': FeatureGrid,
+  cta: Cta,
+  testimonials: Testimonials,
+  faq: Faq,
+  contact: Contact,
   'core-content': CoreContent,
 };
 

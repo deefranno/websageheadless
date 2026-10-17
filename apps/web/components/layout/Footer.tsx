@@ -9,21 +9,41 @@ export function Footer({ site }: { site: Site }) {
         <div>
           <p className="font-heading text-lg font-bold">{site.name}</p>
           {description ? <p className="mt-2">{description}</p> : null}
+          {site.contact.email || site.contact.phone || site.contact.address ? (
+            <address className="mt-4 space-y-1 not-italic">
+              {site.contact.email ? (
+                <p>
+                  <a
+                    href={`mailto:${site.contact.email}`}
+                    className="underline"
+                  >
+                    {site.contact.email}
+                  </a>
+                </p>
+              ) : null}
+              {site.contact.phone ? <p>{site.contact.phone}</p> : null}
+              {site.contact.address ? (
+                <p className="whitespace-pre-line">{site.contact.address}</p>
+              ) : null}
+            </address>
+          ) : null}
         </div>
         {site.menus.footer.length > 0 ? (
           <nav aria-label="Footer">
             <ul className="space-y-2">
-              {site.menus.footer.map((item) => (
-                <li key={`${item.href}-${item.label}`}>
-                  <SmartLink
-                    href={item.href}
-                    newTab={item.newTab}
-                    className="hover:underline"
-                  >
-                    {item.label}
-                  </SmartLink>
-                </li>
-              ))}
+              {site.menus.footer
+                .flatMap((item) => [item, ...item.children])
+                .map((item) => (
+                  <li key={`${item.href}-${item.label}`}>
+                    <SmartLink
+                      href={item.href}
+                      newTab={item.newTab}
+                      className="hover:underline"
+                    >
+                      {item.label}
+                    </SmartLink>
+                  </li>
+                ))}
             </ul>
           </nav>
         ) : null}
@@ -39,9 +59,14 @@ export function Footer({ site }: { site: Site }) {
           </ul>
         ) : null}
       </div>
-      <p className="border-t border-border/30 px-4 py-4 text-center text-sm">
-        © {copyright || site.name}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/30 px-4 py-4 text-sm sm:px-6">
+        <p>
+          © {new Date().getFullYear()} {copyright || site.name}
+        </p>
+        <a href="#top" className="inline-flex min-h-11 items-center underline">
+          Back to top
+        </a>
+      </div>
     </footer>
   );
 }

@@ -24,7 +24,12 @@ if ( is_array( $wsh_settings ) && 'on' === ( $wsh_settings['delete_submissions_o
 	}
 }
 
-foreach ( array( 'wsh_settings', 'wsh_settings_backup_v0', 'wsh_revalidation_jobs', 'wsh_revalidation_last' ) as $wsh_option ) {
+global $wpdb;
+$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'wsh_rate_limits' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.NotPrepared -- plugin-owned table.
+
+foreach ( array( 'wsh_settings', 'wsh_settings_backup_v0', 'wsh_revalidation_jobs', 'wsh_revalidation_last', 'wsh_db_version' ) as $wsh_option ) {
 	delete_option( $wsh_option );
 }
-wp_clear_scheduled_hook( 'wsh_revalidation_retry' );
+foreach ( array( 'wsh_revalidation_retry', 'wsh_contact_retention', 'wsh_contact_mail_retry' ) as $wsh_hook ) {
+	wp_clear_scheduled_hook( $wsh_hook );
+}

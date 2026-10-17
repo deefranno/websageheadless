@@ -32,7 +32,10 @@ export interface ServerConfig {
  */
 export function getSecret(
   name:
-    'WSH_SERVER_API_SECRET' | 'WSH_PREVIEW_SECRET' | 'WSH_REVALIDATION_SECRET',
+    | 'WSH_SERVER_API_SECRET'
+    | 'WSH_PREVIEW_SECRET'
+    | 'WSH_REVALIDATION_SECRET'
+    | 'WSH_RATE_LIMIT_SECRET',
   env: NodeJS.ProcessEnv = process.env,
 ): string | null {
   const value = env[name];

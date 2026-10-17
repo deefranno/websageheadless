@@ -10,5 +10,7 @@ parameters:
     - src
   scanDirectories:
     - vendor/cmb2/cmb2/includes
+  scanFiles:
+    - tests/phpstan-wp-cli.php
   bootstrapFiles:
     - tests/phpstan-constants.php

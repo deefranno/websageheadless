@@ -1,6 +1,8 @@
 import type { Site } from '@websage/contracts';
 import { connection } from 'next/server';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { getSite } from '@/lib/api/fetchers';
+import { organization, website } from '@/lib/seo/structured-data';
 import { Footer } from './Footer';
 import { Header, HeaderFallback } from './Header';
 import { SiteTheme } from './SiteTheme';
@@ -33,6 +35,7 @@ export async function SiteHeader() {
   return (
     <>
       <SiteTheme branding={site.branding} />
+      <JsonLd data={{ '@graph': [organization(site), website(site)] }} />
       <Header site={site} />
     </>
   );

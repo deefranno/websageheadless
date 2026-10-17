@@ -56,7 +56,7 @@ WORDPRESS_MEDIA_HOST=websage-headless.ddev.site
 NODE_EXTRA_CA_CERTS="$(mkcert -CAROOT)/rootCA.pem"   # trust DDEV's local certificate
 ```
 
-Then `pnpm --filter @websage/web dev`. Create a page with a Hero block, set it as the static front page (Settings → Reading), and open http://localhost:3000.
+Load the demo site with `ddev wp websage seed --yes` (pages, posts, testimonials, CTA, menus, settings and front page; safe to run again), then `pnpm --filter @websage/web dev` and open http://localhost:3000.
 
 Without WordPress, `WSH_FIXTURE_MODE=true pnpm --filter @websage/web dev` renders the shared fixtures. Fixture mode is refused in production builds.
 
@@ -70,7 +70,7 @@ WP_CORE_DIR="$PWD/.wordpress/sqlite-core" composer --working-dir=packages/wp-plu
 
 scripts/wp-sqlite-site.sh start          # disposable site at https://localhost:8443 (self-signed TLS)
 # Also: HTTPS front for Next.js at https://localhost:3443 -> http://127.0.0.1:3000,
-# fresh shared secrets, a front page, and WebSage Headless Core activated.
+# fresh shared secrets, WebSage Headless Core activated and the demo seeded.
 # URLs, credentials, secrets and NODE_EXTRA_CA_CERTS are in .wordpress/sqlite-site/e2e.env
 set -a; . .wordpress/sqlite-site/e2e.env; set +a
 pnpm --filter @websage/web build && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/
@@ -99,6 +99,6 @@ WordPress reads `WSH_FRONTEND_ORIGIN` (wp-config constant or server environment)
 ## Known Phase 2 limitations
 
 - Unknown paths get a real 404 from proxy.ts; a page that disappears between the route check and rendering still gets the noindex soft 404 (ADR-011, ADR-015).
-- Only the hero and core-content sections have visual components; the other section types render nothing in production until Phase 4.
-- The blog index is a placeholder and posts have a minimal view until Phase 4.
+- `robots.txt` is generated at build time: set `FRONTEND_ORIGIN` when building.
+- The demo seed contains no images.
 - Static export is not supported (preview, contact and revalidation need a server).
