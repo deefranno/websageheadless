@@ -50,19 +50,31 @@ function rgb(hex: string) {
 }
 
 async function uploadLogo(page: Page): Promise<{ url: string; id: number }> {
-  const nonce = await (
-    await page.request.get(`${wpUrl}/wp-admin/admin-ajax.php?action=rest-nonce`)
-  ).text();
-  const response = await page.request.post(`${wpUrl}/wp-json/wp/v2/media`, {
-    headers: {
-      'X-WP-Nonce': nonce,
-      'Content-Type': 'image/png',
-      'Content-Disposition': 'attachment; filename="rebrand-logo.png"',
-    },
-    data: await readFile(
-      new URL('./fixtures/rebrand-logo.png', import.meta.url),
-    ),
-  });
+  const data = await readFile(
+    new URL('./fixtures/rebrand-logo.png', import.meta.url),
+  );
+  let response;
+  // On the SQLite harness, concurrent admin requests can overwrite a fresh
+  // login session, invalidating the nonce ("Cookie check failed"). Log in
+  // again and retry rather than fail on a harness race.
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const nonce = await (
+      await page.request.get(
+        `${wpUrl}/wp-admin/admin-ajax.php?action=rest-nonce`,
+      )
+    ).text();
+    response = await page.request.post(`${wpUrl}/wp-json/wp/v2/media`, {
+      headers: {
+        'X-WP-Nonce': nonce,
+        'Content-Type': 'image/png',
+        'Content-Disposition': 'attachment; filename="rebrand-logo.png"',
+      },
+      data,
+    });
+    if (response.status() !== 403 || attempt === 3) break;
+    await logIn(page);
+  }
+  if (!response) throw new Error('upload not attempted');
   expect(response.status(), await response.text()).toBe(201);
   const media = (await response.json()) as { source_url: string; id: number };
   return { url: media.source_url, id: media.id };
