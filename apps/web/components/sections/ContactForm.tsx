@@ -1,5 +1,7 @@
 'use client';
 
+// Must stay first: configures Zod before the schemas below are built.
+import '@/lib/zod-jitless';
 import {
   ContactFormSchema,
   contactFieldErrors,
