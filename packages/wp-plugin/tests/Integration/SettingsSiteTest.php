@@ -36,6 +36,47 @@ final class SettingsSiteTest extends ApiTestCase {
 		$cmb->save_fields( Settings::OPTION, 'options-page', $values );
 	}
 
+	public function test_unset_settings_render_their_defaults(): void {
+		update_option( Settings::OPTION, array( 'schema_version' => 1 ) );
+		$option = cmb2_options( Settings::OPTION );
+		$cache  = new \ReflectionProperty( $option, 'options' );
+		$cache->setAccessible( true );
+		$cache->setValue( $option, array() );
+		$cmb = cmb2_get_metabox( SettingsPage::BOX_ID, Settings::OPTION, 'options-page' );
+
+		ob_start();
+		$cmb->show_form( 0, 'options-page' );
+		$html = (string) ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '/name="retention_days"[^>]*value="30"|value="30"[^>]*name="retention_days"/', $html );
+		$this->assertMatchesRegularExpression( '/name="primary"[^>]*value="#174F46"|value="#174F46"[^>]*name="primary"/', $html );
+	}
+
+	public function test_a_logo_chosen_on_the_settings_page_reaches_site(): void {
+		update_option( Settings::OPTION, array( 'schema_version' => 1 ) );
+		$id  = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/a2-small.jpg' );
+		$url = (string) wp_get_attachment_url( $id );
+		// The API only serves https media, as a production CMS does.
+		add_filter(
+			'wp_get_attachment_image_src',
+			static fn( $image ) => is_array( $image ) ? array_replace( $image, array( 0 => set_url_scheme( (string) $image[0], 'https' ) ) ) : $image
+		);
+
+		// The media modal posts the URL and an ID; the ID is derived from the URL.
+		$this->save_settings(
+			array(
+				'logo'    => $url,
+				'logo_id' => '999999',
+			)
+		);
+		$this->assertSame( $id, (int) get_option( Settings::OPTION )['logo_id'] );
+		$logo = $this->get( '/websage/v1/site' )->get_data()['data']['branding']['logo'];
+		$this->assertSame( set_url_scheme( $url, 'https' ), $logo['url'] );
+
+		$this->save_settings( array( 'logo' => '' ) );
+		$this->assertNull( $this->get( '/websage/v1/site' )->get_data()['data']['branding']['logo'] );
+	}
+
 	public function test_migration_is_idempotent_and_backs_up(): void {
 		update_option(
 			Settings::OPTION,

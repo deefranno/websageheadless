@@ -163,39 +163,83 @@ final class Sanitize {
 	public static function image( mixed $value, mixed $args, CMB2_Field $field ): string {
 		$value = is_string( $value ) ? trim( $value ) : '';
 		if ( '' === $value ) {
+			self::save_attachment_id( $field, null );
 			return '';
 		}
 		$id = attachment_url_to_postid( $value );
 		if ( $id < 1 || ! wp_attachment_is_image( $id ) ) {
 			return self::reject( $field, __( 'must be an image from the media library', 'websage-headless' ) );
 		}
+		self::save_attachment_id( $field, $id );
 		return esc_url_raw( $value );
+	}
+
+	/**
+	 * Stores the `{field}_id` companion that readers use. A custom
+	 * sanitization_cb replaces CMB2's file handling, which would otherwise
+	 * save it; the ID comes from the validated URL, never from the request.
+	 *
+	 * @param CMB2_Field $field File field.
+	 * @param int|null   $id    Attachment ID, or null to clear.
+	 */
+	private static function save_attachment_id( CMB2_Field $field, ?int $id ): void {
+		$companion = $field->get_field_clone(
+			array(
+				'id'              => $field->id( true ) . '_id',
+				'sanitization_cb' => false,
+			)
+		);
+		if ( null === $id ) {
+			$companion->remove_data();
+		} else {
+			$companion->update_data( $id );
+		}
+	}
+
+	/**
+	 * CMB2 skips a field's default when it has a custom escape_cb, so unset
+	 * settings would render empty (and then fail validation on save).
+	 *
+	 * @param mixed           $value Stored value.
+	 * @param CMB2_Field|null $field Field.
+	 */
+	private static function or_default( mixed $value, ?CMB2_Field $field ): mixed {
+		return null === $field ? $value : $field->val_or_default( $value );
 	}
 
 	/**
 	 * Escaping for single-line values in admin inputs.
 	 *
-	 * @param mixed $value Stored value.
+	 * @param mixed           $value Stored value.
+	 * @param mixed           $args  Field arguments.
+	 * @param CMB2_Field|null $field Field.
 	 */
-	public static function esc_attr( mixed $value ): string {
+	public static function esc_attr( mixed $value, mixed $args = null, ?CMB2_Field $field = null ): string {
+		$value = self::or_default( $value, $field );
 		return esc_attr( is_scalar( $value ) ? (string) $value : '' );
 	}
 
 	/**
 	 * Escaping for textarea values.
 	 *
-	 * @param mixed $value Stored value.
+	 * @param mixed           $value Stored value.
+	 * @param mixed           $args  Field arguments.
+	 * @param CMB2_Field|null $field Field.
 	 */
-	public static function esc_textarea( mixed $value ): string {
+	public static function esc_textarea( mixed $value, mixed $args = null, ?CMB2_Field $field = null ): string {
+		$value = self::or_default( $value, $field );
 		return esc_textarea( is_scalar( $value ) ? (string) $value : '' );
 	}
 
 	/**
 	 * Escaping for URL inputs.
 	 *
-	 * @param mixed $value Stored value.
+	 * @param mixed           $value Stored value.
+	 * @param mixed           $args  Field arguments.
+	 * @param CMB2_Field|null $field Field.
 	 */
-	public static function esc_url( mixed $value ): string {
+	public static function esc_url( mixed $value, mixed $args = null, ?CMB2_Field $field = null ): string {
+		$value = self::or_default( $value, $field );
 		return esc_url( is_string( $value ) ? $value : '' );
 	}
 
