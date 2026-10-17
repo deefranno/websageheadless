@@ -65,3 +65,28 @@ describe('public data boundary', () => {
     ).toThrow();
   });
 });
+
+describe('canonical URLs', () => {
+  it('accept HTTPS anywhere and plain HTTP on loopback only', () => {
+    for (const url of [
+      'https://www.example.com/about',
+      'http://localhost:3000/about',
+      'http://127.0.0.1:3000/',
+      'http://[::1]:3000/',
+    ]) {
+      expect(contracts.CanonicalUrlSchema.safeParse(url).success, url).toBe(
+        true,
+      );
+    }
+    for (const url of [
+      'http://www.example.com/',
+      'http://localhost.evil.example/',
+      'http://user@localhost:3000/',
+      'javascript:alert(1)',
+    ]) {
+      expect(contracts.CanonicalUrlSchema.safeParse(url).success, url).toBe(
+        false,
+      );
+    }
+  });
+});
