@@ -54,7 +54,7 @@ final class PostSerializer {
 			$summary,
 			array(
 				'sections' => Sections::build( $post->post_content )->sections(),
-				'seo'      => Seo::for_post( $route, (string) $summary['path'], (string) $summary['excerpt'] ),
+				'seo'      => Seo::for_post( $route, (string) $summary['path'], (string) $summary['excerpt'], $post->post_title ),
 			)
 		);
 		return PageSerializer::bounded( $data, $route->ID );

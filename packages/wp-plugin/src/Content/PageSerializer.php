@@ -35,7 +35,7 @@ final class PageSerializer {
 			'title'    => Values::text( $page->post_title, 'title' ),
 			'modified' => Values::timestamp( $page->post_modified_gmt ),
 			'sections' => Sections::build( $page->post_content )->sections(),
-			'seo'      => Seo::for_post( $route, $path ),
+			'seo'      => Seo::for_post( $route, $path, '', $page->post_title ),
 		);
 		return self::bounded( $data, $route->ID );
 	}
