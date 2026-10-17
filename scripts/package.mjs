@@ -50,7 +50,7 @@ const STARTER_EXCLUDE = [
 
 /* Never allowed in either archive. */
 const FORBIDDEN = [
-  /(^|\/)\.env(\.(?!example$)[^/]*)?$/,
+  /(^|\/)\.env(\.[^/]*)?$(?<!\.example)/,
   /\.(pem|key|crt|p12)$/,
   /(^|\/)e2e\.env$/,
   /(^|\/)node_modules\//,
