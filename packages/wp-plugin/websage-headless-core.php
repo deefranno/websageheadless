@@ -3,7 +3,7 @@
  * Plugin Name:       WebSage Headless Core
  * Plugin URI:        https://websagecreative.com/
  * Description:       Turns WordPress into the headless CMS for a WebSage Headless Next.js frontend.
- * Version:           0.1.0
+ * Version:           1.0.0-rc.1
  * Requires at least: 7.1.3
  * Requires PHP:      8.1
  * Author:            WebSage Creative
@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
 
 define( 'WSH_PLUGIN_FILE', __FILE__ );
 define( 'WSH_PLUGIN_DIR', __DIR__ );
-define( 'WSH_VERSION', '0.1.0' );
+define( 'WSH_VERSION', '1.0.0-rc.1' );
 
 /**
  * Shows a bootstrap failure to administrators and keeps the plugin inert.

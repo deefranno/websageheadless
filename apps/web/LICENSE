@@ -1,0 +1,57 @@
+DRAFT — NOT LEGAL ADVICE. These terms are a plain-language starting point
+prepared for review by WebSage Creative's legal adviser. They must be
+reviewed, completed and approved before the kit is sold.
+
+WEBSAGE HEADLESS FRONTEND — COMMERCIAL LICENCE (DRAFT)
+
+Copyright (c) 2026 WebSage Creative. All rights reserved except as granted
+below.
+
+This licence covers the WebSage Headless Next.js frontend (the "Frontend":
+the apps/web directory and its documentation). It does not cover:
+  - the WebSage Headless Core WordPress plugin, which is licensed under the
+    GNU General Public License version 2 or later (see its LICENSE file);
+  - the @websage/contracts package, which is licensed under the MIT licence
+    (see packages/contracts/LICENSE);
+  - third-party packages, which keep their own licences (see
+    THIRD-PARTY-NOTICES.txt).
+
+1. Who may use it
+   The person or organisation that purchased a licence from WebSage Creative
+   (the "Licensee"), including its employees and contractors working on its
+   behalf.
+
+2. What the Licensee may do
+   a. Use, copy and modify the Frontend to build and operate websites for
+      the Licensee and for the Licensee's clients, on any number of sites.
+   b. Deliver the resulting website source code to a client, who may host,
+      maintain and modify that website.
+
+3. What the Licensee may not do
+   a. Sell, sublicense, give away or publish the Frontend, or a substantially
+      similar starter kit, template or theme derived from it, as a product in
+      its own right.
+   b. Remove copyright or licence notices from the source files.
+
+4. Ownership
+   WebSage Creative keeps all rights in the Frontend. Content, branding and
+   code the Licensee or its clients add belong to them.
+
+5. No warranty
+   The Frontend is provided "as is", without warranty of any kind, express
+   or implied, including fitness for a particular purpose.
+
+6. Limitation of liability
+   To the extent permitted by law, WebSage Creative is not liable for any
+   indirect or consequential loss, and its total liability is limited to the
+   amount paid for the licence. [Adviser to confirm wording and jurisdiction.]
+
+7. Termination
+   This licence ends automatically if the Licensee breaches it. Websites
+   already delivered to clients in compliance with these terms may continue
+   to operate.
+
+8. Governing law
+   [To be decided with the legal adviser.]
+
+Questions: duanefranklyn@gmail.com

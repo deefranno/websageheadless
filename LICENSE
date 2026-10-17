@@ -1,0 +1,21 @@
+WebSage Headless is made of parts under different licences.
+
+  packages/wp-plugin   WebSage Headless Core (WordPress plugin)
+                       GNU General Public License v2.0 or later
+                       See packages/wp-plugin/LICENSE
+
+  packages/contracts   @websage/contracts (shared schemas and fixtures)
+                       MIT
+                       See packages/contracts/LICENSE
+
+  apps/web             WebSage Headless frontend (Next.js)
+                       Commercial licence (draft, under legal review)
+                       See apps/web/LICENSE
+
+  Repository tooling, scripts and documentation not inside one of the
+  directories above are covered by the frontend's commercial licence.
+
+Third-party packages keep their own licences; see THIRD-PARTY-NOTICES.txt in
+each release archive.
+
+Copyright (c) 2026 WebSage Creative
