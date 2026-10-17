@@ -76,14 +76,15 @@ describe('every section type renders', () => {
     expect(within(region).getByText('How long?').tagName).toBe('SUMMARY');
   });
 
-  it('CTA and contact sections render their actions', () => {
+  it('CTA and contact sections render their actions', async () => {
     render(<>{page.sections.map(renderSection)}</>);
     expect(screen.getByRole('link', { name: 'Contact' })).toHaveAttribute(
       'href',
       '/contact',
     );
     const contact = screen.getByRole('region', { name: 'Contact us' });
-    expect(within(contact).getByLabelText('Name')).toBeInTheDocument();
+    // The form itself is lazy-loaded (ContactFormLoader).
+    expect(await within(contact).findByLabelText('Name')).toBeInTheDocument();
     expect(
       within(contact).getByRole('button', { name: 'Send' }),
     ).toBeInTheDocument();

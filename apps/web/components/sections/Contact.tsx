@@ -1,6 +1,6 @@
 import type { ContactSection } from '@websage/contracts';
 import { RichText } from '@/components/ui/RichText';
-import { ContactForm } from './ContactForm';
+import { ContactFormLoader as ContactForm } from './ContactFormLoader';
 import { Section, SectionHeading } from './shared';
 
 export function Contact({
