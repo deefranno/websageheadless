@@ -142,7 +142,7 @@ Decision: `generateMetadata`, `sitemap.xml` and page bodies read CMS data at req
 Context: Lighthouse 13 (mobile, plain Android Chrome user agent) flags a missing meta description because Next.js 16 streams `generateMetadata` output into `<body>` for browsers; HTML-limited crawlers (Bingbot, facebookexternalhit, …) get it in `<head>`. Next.js documents that JavaScript-rendering crawlers such as Googlebot read streamed metadata correctly.
 Decision: keep the Next.js default (streaming). `htmlLimitedBots: /.*/` (blocking metadata for everyone) was measured: SEO 100 and Performance about +5, but in Next.js 16.4.2 with Cache Components and partial prefetching it made client RSC prefetch requests hang indefinitely on every page, holding server connections open. Lighthouse runs from `pnpm --filter @websage/web lighthouse` (median of 3) and is not part of CI, because scores depend heavily on the machine (benchmarkIndex 648–1350 during Phase 5).
 Alternatives: blocking metadata (rejected above); build-time metadata (needs WordPress at build, contradicts ADR-020).
-Consequences: Lighthouse SEO reports 91 locally; Performance 71–93 on this machine, below the ≥ 90 target. The owner decides whether to accept this and measure the deployed demo with PageSpeed Insights. Re-test `htmlLimitedBots` when Next.js is upgraded.
+Consequences: Lighthouse SEO reports 91 locally; Performance 71–93 on this machine, below the ≥ 90 target. Owner decision 2026-10-16: accepted for now; the deployed demo is measured with PageSpeed Insights in Phase 6 and those scores are reported. Re-test `htmlLimitedBots` when Next.js is upgraded.
 
 ## ADR-022 — Client code splitting and Zod in the browser (Phase 5)
 

@@ -73,4 +73,6 @@ Verified here: root lint/typecheck/test pass; PHPCS and PHPStan clean; PHP integ
 
 Known issues / decisions for the owner: Lighthouse Performance and SEO below the ≥ 90 target locally (ADR-021); 8 build-time-only dependency advisories; DDEV and real screen readers not verified.
 
-Next: push `feat/testing-hardening`, open the PR, confirm CI, owner review of the Phase 5 gate, then Phase 6 (commercial packaging).
+CI green on PR #3; owner merged Phase 5 on 2026-10-16 and accepted the local Lighthouse results, with PageSpeed Insights on the deployed demo to be reported in Phase 6 (ADR-021).
+
+Next: Phase 6 (commercial packaging) once approved.
