@@ -25,7 +25,7 @@ It bundles CMB2 and needs no other plugins. It is designed for the WebSage Headl
 
 == Installation ==
 
-1. Upload the plugin zip under Plugins → Add New → Upload Plugin, and activate it.
+1. Upload the plugin zip under Plugins → Add Plugin → Upload Plugin, and activate it.
 2. Add the configuration constants to wp-config.php (see INSTALL.md in the kit).
 3. Optionally load the demo content with WP-CLI: `wp websage seed --yes`.
 4. Open WebSage → Diagnostics to confirm the website connection.

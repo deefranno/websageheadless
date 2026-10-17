@@ -65,7 +65,7 @@ WordPress is at https://websage-headless.ddev.site/wp-admin/ (user `admin`).
 
 ### Path B: an existing WordPress site
 
-1. In wp-admin, go to **Plugins → Add New → Upload Plugin**, choose `websage-headless-core-<version>.zip`, then **Install Now** and **Activate**. No other plugin is needed.
+1. In wp-admin, go to **Plugins → Add Plugin → Upload Plugin**, choose `websage-headless-core-<version>.zip`, then **Install Now** and **Activate**. No other plugin is needed.
 2. Add the secrets and the website address to `wp-config.php`, above the line `/* That's all, stop editing! */`:
 
    ```php
@@ -115,11 +115,11 @@ NODE_EXTRA_CA_CERTS="$(mkcert -CAROOT)/rootCA.pem" pnpm --filter @websage/web de
 NODE_EXTRA_CA_CERTS=/path/to/your-ca.pem pnpm --filter @websage/web dev               # Path B with a self-signed certificate
 ```
 
-Open http://localhost:3000. You should see the demo home page "Websites that grow with your business", with Services, About, Blog and Contact in the menu.
+Open http://localhost:3000. You should see the demo home page "Websites that grow with your business", with Home, About (Services is in its drop-down), Blog and Contact in the menu.
 
 ## 6. Check the connection
 
-In wp-admin open **WebSage Settings → Diagnostics**. Every row should be ✅.
+In wp-admin open **WebSage Settings → Diagnostics**. Every row should be ✅. **Last webhook delivery** may still show a failure from before the website was running (for example from loading the demo); click **Send a test refresh** and reload the screen.
 
 - **Edit something:** change a page and click **Update**, then reload the website. Path B on the same computer: within seconds. Path A (DDEV): within 5 minutes (see below). Deployed sites: within seconds.
 - **Preview:** open a draft and click **Preview**; the website opens it in preview mode with a banner.
@@ -131,10 +131,10 @@ In wp-admin open **WebSage Settings → Diagnostics**. Every row should be ✅.
 
 ```bash
 pnpm build
-pnpm --filter @websage/web start     # serves the production build on http://localhost:3000
+pnpm --filter @websage/web start     # serves the production build on http://localhost:3000, reading apps/web/.env.local
 ```
 
-`robots.txt` is generated at build time, so set `FRONTEND_ORIGIN` before building. Deploying for real: [DEPLOYMENT.md](DEPLOYMENT.md).
+Put `NODE_EXTRA_CA_CERTS=…` in front of the `start` command too if you needed it in step 5. `robots.txt` is generated at build time, so set `FRONTEND_ORIGIN` before building. In production mode the contact form also needs `WSH_CLIENT_IP_HEADER` (it answers "temporarily unavailable" without it); see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Troubleshooting
 
