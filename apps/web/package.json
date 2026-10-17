@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "cp -r .next/static .next/standalone/apps/web/.next/ && node --env-file-if-exists=.env.local .next/standalone/apps/web/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:integration": "playwright test",
