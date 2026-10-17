@@ -142,7 +142,7 @@ Put `NODE_EXTRA_CA_CERTS=…` in front of the `start` command too if you needed 
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Page shows "Something went wrong", terminal says `fetch failed` | The website cannot reach WordPress: check `WP_API_ORIGIN`; for local certificates start the server with `NODE_EXTRA_CA_CERTS=…` in front of the command (see step 5). |
 | `503 not_configured` from WordPress                             | `WSH_FRONTEND_ORIGIN` is missing, or not `https://` (only `localhost` may use `http://`); or set the address in **WebSage Settings → Integration**.                   |
-| Every page is 404                                               | Permalinks are set to "Plain", or the demo was not seeded (no front page).                                                                                            |
+| Every page shows an error or a 404                              | Permalinks are still "Plain" (the API at `/wp-json/` needs pretty permalinks), or the demo was not seeded (no front page).                                            |
 | Preview says "not configured"                                   | `WSH_PREVIEW_SECRET` differs between WordPress and the website, or is shorter than 32 characters.                                                                     |
 | Images do not load                                              | `WORDPRESS_MEDIA_HOST` is wrong; it is read at build time, so restart `pnpm dev` or rebuild after changing it.                                                        |
 

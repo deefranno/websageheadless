@@ -76,3 +76,15 @@ Known issues / decisions for the owner: Lighthouse Performance and SEO below the
 CI green on PR #3; owner merged Phase 5 on 2026-10-16 and accepted the local Lighthouse results, with PageSpeed Insights on the deployed demo to be reported in Phase 6 (ADR-021).
 
 Next: Phase 6 (commercial packaging) once approved.
+
+## Phase 6 — Commercial Packaging, implemented; awaiting gate review
+
+Plan: `docs/superpowers/plans/2026-10-17-commercial-packaging.md`. Branch `feat/commercial-packaging`. Report: `docs/reports/phase-6-verification.md`.
+
+Owner decisions (2026-10-17): version 1.0.0-rc.1; copyright WebSage Creative; security reports to the owner's email; frontend licence drafted for legal review.
+
+Done: install, developer, client, deployment and security guides; README; CHANGELOG; licence files and generated third-party notices; version script; `pnpm package` with archive audit (in CI); clean install from the archives following only INSTALL.md (Path B) — passed. Fixed from the clean install: pnpm installation method, `NODE_EXTRA_CA_CERTS` placement, loopback website address for local development (ADR-024), canonical URL contract, preview tab title, standalone `start` script, wp-admin labels.
+
+Verified here: lint/typecheck/test; PHPCS/PHPStan; PHP integration 73/73 in both CMB2 orders; Playwright 53/53 twice; clean install end to end.
+
+Owner actions before tagging 1.0.0: run INSTALL Path A (DDEV) on a Docker host; deploy the demo and run PageSpeed Insights (ADR-021); legal review of the frontend licence; confirm the security response times in SECURITY.md.

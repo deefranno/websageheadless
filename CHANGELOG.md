@@ -21,7 +21,13 @@ First release candidate.
 Found and fixed in the pre-release review:
 
 - User enumeration through mixed-case REST routes (`/wp/v2/USERS`) and through oEmbed author fields.
+
+### Fixed during release preparation
+
 - Logos and sharing images chosen in WebSage Settings were never saved for the website.
+- Local development: `http://localhost` is accepted as the website address (previews and webhooks reach a local dev server); every other host still needs HTTPS.
+- Previews now show the draft's title and description in the browser tab.
+- `pnpm --filter @websage/web start` runs the standalone production build with `.env.local`.
 
 ### Known limitations
 
