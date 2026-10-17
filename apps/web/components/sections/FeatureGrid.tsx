@@ -54,7 +54,7 @@ export function FeatureGrid({
                 <SmartLink
                   href={item.link.href}
                   newTab={item.link.newTab}
-                  className="mt-4 font-semibold text-primary underline underline-offset-4"
+                  className="mt-4 font-semibold underline underline-offset-4"
                 >
                   {item.link.label}
                 </SmartLink>
