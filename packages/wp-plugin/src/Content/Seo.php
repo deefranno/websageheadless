@@ -26,14 +26,16 @@ final class Seo {
 	 * @param WP_Post $post        Post.
 	 * @param string  $path        Frontend path.
 	 * @param string  $description Fallback description (e.g. post excerpt).
+	 * @param ?string $title       Title to build the fallback from; previews pass the draft's title.
 	 * @return array{title: string, description: string, canonical: string, openGraphImage: array<string, mixed>|null, noindex: bool}
 	 * @throws ContentException When the frontend origin is not configured.
 	 */
-	public static function for_post( WP_Post $post, string $path, string $description = '' ): array {
+	public static function for_post( WP_Post $post, string $path, string $description = '', ?string $title = null ): array {
 		$settings = Settings::all();
+		$fallback = $title ?? $post->post_title;
 		$title    = Values::text_clipped( get_post_meta( $post->ID, SeoMetabox::TITLE, true ) );
 		if ( '' === $title ) {
-			$title = self::apply_template( (string) $settings['seo_title_template'], Values::text_clipped( $post->post_title ) );
+			$title = self::apply_template( (string) $settings['seo_title_template'], Values::text_clipped( $fallback ) );
 		}
 
 		$summary = Values::text_clipped( get_post_meta( $post->ID, SeoMetabox::DESCRIPTION, true ) );

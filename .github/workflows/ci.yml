@@ -34,6 +34,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm version:check
+      # Builds both release archives and audits their contents.
+      - run: pnpm package
 
   wordpress:
     name: WordPress integration (PHP ${{ matrix.php }})

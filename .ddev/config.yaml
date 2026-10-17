@@ -14,5 +14,5 @@ database:
 upload_dirs:
   - wp-content/uploads
 web_environment:
-  # Canonical URLs only; the local Next.js dev server need not serve HTTPS.
-  - WSH_FRONTEND_ORIGIN=https://localhost:3000
+  # The local Next.js dev server is plain HTTP on the host (allowed for localhost).
+  - WSH_FRONTEND_ORIGIN=http://localhost:3000

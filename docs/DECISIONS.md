@@ -142,7 +142,7 @@ Decision: `generateMetadata`, `sitemap.xml` and page bodies read CMS data at req
 Context: Lighthouse 13 (mobile, plain Android Chrome user agent) flags a missing meta description because Next.js 16 streams `generateMetadata` output into `<body>` for browsers; HTML-limited crawlers (Bingbot, facebookexternalhit, …) get it in `<head>`. Next.js documents that JavaScript-rendering crawlers such as Googlebot read streamed metadata correctly.
 Decision: keep the Next.js default (streaming). `htmlLimitedBots: /.*/` (blocking metadata for everyone) was measured: SEO 100 and Performance about +5, but in Next.js 16.4.2 with Cache Components and partial prefetching it made client RSC prefetch requests hang indefinitely on every page, holding server connections open. Lighthouse runs from `pnpm --filter @websage/web lighthouse` (median of 3) and is not part of CI, because scores depend heavily on the machine (benchmarkIndex 648–1350 during Phase 5).
 Alternatives: blocking metadata (rejected above); build-time metadata (needs WordPress at build, contradicts ADR-020).
-Consequences: Lighthouse SEO reports 91 locally; Performance 71–93 on this machine, below the ≥ 90 target. The owner decides whether to accept this and measure the deployed demo with PageSpeed Insights. Re-test `htmlLimitedBots` when Next.js is upgraded.
+Consequences: Lighthouse SEO reports 91 locally; Performance 71–93 on this machine, below the ≥ 90 target. Owner decision 2026-10-16: accepted for now; the deployed demo is measured with PageSpeed Insights in Phase 6 and those scores are reported. Re-test `htmlLimitedBots` when Next.js is upgraded.
 
 ## ADR-022 — Client code splitting and Zod in the browser (Phase 5)
 
@@ -154,3 +154,15 @@ Consequences: new client sections with large dependencies should follow the same
 Context: CMB2 skips a field's default when `escape_cb` is set, and skips its file handling (which stores `{field}_id`) when `sanitization_cb` is set. Every settings field sets both.
 Decision: the plugin's escape callbacks apply `val_or_default()`; the image sanitizer stores `{field}_id` itself, using the attachment ID resolved from the validated URL rather than the posted ID.
 Consequences: any new CMB2 field with custom callbacks gets the same behaviour by using the `Sanitize` helpers.
+
+## ADR-024 — Loopback website address for local development (Phase 6)
+
+Context: the clean-install run showed that with an HTTPS-only website address, a local `next dev` server (plain HTTP) could not receive wp-admin previews or refresh webhooks.
+Decision: `WSH_FRONTEND_ORIGIN` (and the Integration setting) accept `http://` only when the host is `localhost`, `127.0.0.1` or `[::1]`; every other host must be HTTPS. Canonical URLs in the contract follow the same rule (`CanonicalUrlSchema`). Browsers treat loopback as a secure context, so preview cookies still work.
+Alternatives: requiring an HTTPS proxy for local development (extra setup for every buyer); allowing HTTP everywhere (weakens production configuration).
+Consequences: with WordPress on the same machine, local edits refresh within seconds. Inside DDEV's container `localhost` is the container, so DDEV still relies on the 5-minute fallback unless an HTTPS front is added.
+
+## ADR-025 — Release packaging (Phase 6)
+
+Decision: `pnpm package` produces two archives. The plugin zip contains runtime code, compiled blocks with their source (GPL source availability), production Composer dependencies, licence and notices. The starter contains the buyer's whole workspace from git-tracked files only (frontend, contracts, plugin source, scripts, DDEV and CI configuration, buyer docs), excluding internal planning material. An audit step fails on secrets, harness data, build output, development files or version mismatches, and runs in CI. One version number (`1.0.0-rc.1`) covers plugin, website and contracts; `scripts/version.mjs` sets and checks it. pnpm is installed with npm in the docs, because Corepack shipped on some systems cannot run pnpm 12.
+Consequences: releases are reproducible from a clean commit; the plugin can be distributed alone (GPL), the starter carries the commercial frontend.

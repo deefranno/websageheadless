@@ -30,6 +30,30 @@ export const HttpsSchema = z
     }
   }, 'Expected an HTTPS URL without credentials');
 
+/**
+ * Canonical page URL on the website: HTTPS, or plain HTTP on a loopback host
+ * for local development (the plugin applies the same rule to the website
+ * address it builds these from).
+ */
+export const CanonicalUrlSchema = z
+  .string()
+  .max(2048)
+  .refine((value) => {
+    if (HttpsSchema.safeParse(value).success) return true;
+    try {
+      const url = new URL(value);
+      return (
+        url.protocol === 'http:' &&
+        ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) &&
+        !url.username &&
+        !url.password &&
+        !/[\\\s]/.test(value)
+      );
+    } catch {
+      return false;
+    }
+  }, 'Expected an HTTPS URL (or http://localhost) without credentials');
+
 export const LinkUrlSchema = z
   .string()
   .max(2048)
@@ -64,7 +88,7 @@ export const ImageSchema = z.strictObject({
 export const SeoSchema = z.strictObject({
   title: TextSchema,
   description: TextSchema,
-  canonical: HttpsSchema,
+  canonical: CanonicalUrlSchema,
   openGraphImage: ImageSchema.nullable(),
   noindex: z.boolean(),
 });

@@ -28,7 +28,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   await connection();
   if (!slug) return {};
   try {
-    const [post, site] = await Promise.all([getPost(slug), getSite()]);
+    const [preview, site] = await Promise.all([
+      previewFor(`/blog/${slug}`),
+      getSite(),
+    ]);
+    // While previewing, the tab title and description follow the draft.
+    const post =
+      preview.status === 'active' && preview.preview.kind === 'post'
+        ? preview.preview.content
+        : await getPost(slug);
     if (!post) return {};
     const metadata = seoMetadata(post.seo, site.name);
     return {

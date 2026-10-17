@@ -59,7 +59,12 @@ function Sections({ title, sections }: { title: string; sections: Section[] }) {
 export async function cmsPageMetadata(path: string): Promise<Metadata> {
   await connection();
   try {
-    const [page, site] = await Promise.all([getPage(path), getSite()]);
+    const [preview, site] = await Promise.all([previewFor(path), getSite()]);
+    // While previewing, the tab title and description follow the draft.
+    const page =
+      preview.status === 'active' && preview.preview.kind === 'page'
+        ? preview.preview.content
+        : await getPage(path);
     return page ? seoMetadata(page.seo, site.name) : {};
   } catch {
     return {};

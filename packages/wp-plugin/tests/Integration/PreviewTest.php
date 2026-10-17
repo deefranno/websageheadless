@@ -123,7 +123,7 @@ final class PreviewTest extends ApiTestCase {
 				array(
 					'post_ID'      => $page,
 					'post_type'    => 'page',
-					'post_title'   => 'About',
+					'post_title'   => 'About (draft title)',
 					'post_content' => self::block( 'websage/hero', array( 'heading' => 'Unsaved change' ) ),
 				)
 			)
@@ -146,6 +146,8 @@ final class PreviewTest extends ApiTestCase {
 			)
 		);
 		$this->assertSame( 'Unsaved change', $content->get_data()['data']['content']['sections'][0]['heading'] );
+		// SEO follows the draft too, so the preview tab shows the unsaved title.
+		$this->assertStringStartsWith( 'About (draft title)', $content->get_data()['data']['content']['seo']['title'] );
 
 		$link = AdminLink::link( 'https://cms/?p=1', get_post( $page ) );
 		$this->assertStringNotContainsString( '&amp;', $link );
