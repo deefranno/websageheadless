@@ -63,7 +63,7 @@ The kit uses only standard Next.js features (Cache Components, `revalidateTag`, 
 Build (on a CI runner or the server), with the build-time variables set:
 
 ```bash
-corepack enable
+npm install --global pnpm@12.14.0   # if pnpm is not installed
 pnpm install --frozen-lockfile
 FRONTEND_ORIGIN=https://www.example.com WORDPRESS_MEDIA_HOST=cms.example.com pnpm build
 cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/

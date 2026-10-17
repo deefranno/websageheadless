@@ -13,22 +13,22 @@ There are two ways to get WordPress running. **A** uses DDEV and is the supporte
 
 ## 1. Prerequisites
 
-| Tool                                                                                                 | Version                     | Check                                   |
-| ---------------------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------- |
-| Node.js                                                                                              | 24.22 or newer 24.x         | `node --version`                        |
-| pnpm                                                                                                 | 12.14 (via Corepack, below) | `pnpm --version`                        |
-| `openssl`                                                                                            | any                         | `openssl version` (to generate secrets) |
-| **Path A:** Docker Engine (or another DDEV provider) and [DDEV](https://ddev.com/get-started/)       | current                     | `ddev --version`                        |
-| **Path B:** WordPress 7.1.3+ on PHP 8.1+, reachable over **HTTPS**, with WP-CLI for the demo content |                             | `wp --version`                          |
+| Tool                                                                                                 | Version                 | Check                                   |
+| ---------------------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------- |
+| Node.js                                                                                              | 24.22 or newer 24.x     | `node --version`                        |
+| pnpm                                                                                                 | 12.14 (installed below) | `pnpm --version`                        |
+| `openssl`                                                                                            | any                     | `openssl version` (to generate secrets) |
+| **Path A:** Docker Engine (or another DDEV provider) and [DDEV](https://ddev.com/get-started/)       | current                 | `ddev --version`                        |
+| **Path B:** WordPress 7.1.3+ on PHP 8.1+, reachable over **HTTPS**, with WP-CLI for the demo content |                         | `wp --version`                          |
 
 Docker Desktop is not required on Linux.
 
 ## 2. Unpack the starter and install dependencies
 
 ```bash
+npm install --global pnpm@12.14.0   # skip if `pnpm --version` already prints 12.14.x
 unzip websage-headless-starter-<version>.zip
 cd websage-headless-starter-<version>
-corepack enable          # makes the pinned pnpm available
 pnpm install
 ```
 
@@ -72,10 +72,10 @@ WordPress is at https://websage-headless.ddev.site/wp-admin/ (user `admin`).
    define( 'WSH_SERVER_API_SECRET', '…' );
    define( 'WSH_PREVIEW_SECRET', '…' );
    define( 'WSH_REVALIDATION_SECRET', '…' );
-   define( 'WSH_FRONTEND_ORIGIN', 'https://localhost:3000' ); // your website's address; must start with https://
+   define( 'WSH_FRONTEND_ORIGIN', 'http://localhost:3000' ); // the website's address: https:// in production; http:// is accepted for localhost only
    ```
 
-   With WP-CLI you can instead run `wp config set WSH_SERVER_API_SECRET …` for each one.
+   With WP-CLI you can instead run `wp config set WSH_SERVER_API_SECRET …` for each one (it prints the value back, so run it where nobody is watching your screen).
 
 3. Load the demo content (pages, posts, menus, settings; safe to run again; it never deletes your own content):
 
@@ -95,13 +95,12 @@ cp .env.example apps/web/.env.local
 
 Edit it:
 
-| Variable               | Path A (DDEV)                                   | Path B                                                                                |
-| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `WP_API_ORIGIN`        | `https://websage-headless.ddev.site`            | your WordPress address, e.g. `https://cms.example.com`                                |
-| `WORDPRESS_MEDIA_HOST` | `websage-headless.ddev.site`                    | the same host, without `https://`                                                     |
-| `NODE_EXTRA_CA_CERTS`  | output of `echo "$(mkcert -CAROOT)/rootCA.pem"` | only if WordPress uses a self-signed or local certificate: that certificate's CA file |
-| `FRONTEND_ORIGIN`      | `http://localhost:3000`                         | `http://localhost:3000`                                                               |
-| `WSH_*_SECRET` (4)     | the values from step 3                          | the values from step 3                                                                |
+| Variable               | Path A (DDEV)                        | Path B                                                 |
+| ---------------------- | ------------------------------------ | ------------------------------------------------------ |
+| `WP_API_ORIGIN`        | `https://websage-headless.ddev.site` | your WordPress address, e.g. `https://cms.example.com` |
+| `WORDPRESS_MEDIA_HOST` | `websage-headless.ddev.site`         | the same host, without `https://`                      |
+| `FRONTEND_ORIGIN`      | `http://localhost:3000`              | `http://localhost:3000`                                |
+| `WSH_*_SECRET` (4)     | the values from step 3               | the values from step 3                                 |
 
 Start it:
 
@@ -109,17 +108,24 @@ Start it:
 pnpm --filter @websage/web dev
 ```
 
+**Local HTTPS certificates.** If WordPress uses a certificate your computer does not trust by default (DDEV's mkcert certificate, or a self-signed one), Node.js must be told about it **in the shell that starts the server**. Putting it in `.env.local` does not work, because Node reads it before the app loads its settings:
+
+```bash
+NODE_EXTRA_CA_CERTS="$(mkcert -CAROOT)/rootCA.pem" pnpm --filter @websage/web dev   # Path A (DDEV)
+NODE_EXTRA_CA_CERTS=/path/to/your-ca.pem pnpm --filter @websage/web dev               # Path B with a self-signed certificate
+```
+
 Open http://localhost:3000. You should see the demo home page "Websites that grow with your business", with Services, About, Blog and Contact in the menu.
 
 ## 6. Check the connection
 
-In wp-admin open **WebSage Settings → Diagnostics**. Every row should be ✅. Locally, the **Send a test refresh** button reports a failure; that is expected (see below).
+In wp-admin open **WebSage Settings → Diagnostics**. Every row should be ✅.
 
-- **Edit something:** change a page and click **Update**. Locally the site shows it within 5 minutes (see below); in production it is instant.
+- **Edit something:** change a page and click **Update**, then reload the website. Path B on the same computer: within seconds. Path A (DDEV): within 5 minutes (see below). Deployed sites: within seconds.
 - **Preview:** open a draft and click **Preview**; the website opens it in preview mode with a banner.
 - **Contact form:** works in development without extra settings. Production needs `WSH_CLIENT_IP_HEADER` (see [DEPLOYMENT.md](DEPLOYMENT.md)).
 
-**Why changes take up to 5 minutes locally:** WordPress tells the website to refresh by calling `https://<website>/api/revalidate`. The local development server is plain HTTP on your machine, so WordPress cannot reach it, and the site falls back to refreshing its cache every 5 minutes. Restarting `pnpm dev` also clears it. Deployed sites (HTTPS) refresh within seconds. To test instant refresh locally, see "HTTPS front for local testing" in [DEVELOPER.md](DEVELOPER.md).
+**Why DDEV changes take up to 5 minutes:** WordPress tells the website to refresh by calling `<website address>/api/revalidate`. Inside DDEV's container, `localhost:3000` is the container itself, not your computer, so the call fails and the website falls back to refreshing its cache every 5 minutes. Restarting `pnpm dev` also clears it. For instant refresh with DDEV, see "HTTPS front for local testing" in [DEVELOPER.md](DEVELOPER.md). **Send a test refresh** on the Diagnostics screen shows whether WordPress can reach the website.
 
 ## 7. Production build (optional check)
 
@@ -132,12 +138,12 @@ pnpm --filter @websage/web start     # serves the production build on http://loc
 
 ## Troubleshooting
 
-| Symptom                                                         | Cause and fix                                                                                                                       |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Page shows "Something went wrong", terminal says `fetch failed` | The website cannot reach WordPress: check `WP_API_ORIGIN`; for local certificates set `NODE_EXTRA_CA_CERTS` and restart `pnpm dev`. |
-| `503 not_configured` from WordPress                             | `WSH_FRONTEND_ORIGIN` is missing or not `https://` (or set the address in **WebSage Settings → Integration**).                      |
-| Every page is 404                                               | Permalinks are set to "Plain", or the demo was not seeded (no front page).                                                          |
-| Preview says "not configured"                                   | `WSH_PREVIEW_SECRET` differs between WordPress and the website, or is shorter than 32 characters.                                   |
-| Images do not load                                              | `WORDPRESS_MEDIA_HOST` is wrong; it is read at build time, so restart `pnpm dev` or rebuild after changing it.                      |
+| Symptom                                                         | Cause and fix                                                                                                                                                         |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page shows "Something went wrong", terminal says `fetch failed` | The website cannot reach WordPress: check `WP_API_ORIGIN`; for local certificates start the server with `NODE_EXTRA_CA_CERTS=…` in front of the command (see step 5). |
+| `503 not_configured` from WordPress                             | `WSH_FRONTEND_ORIGIN` is missing, or not `https://` (only `localhost` may use `http://`); or set the address in **WebSage Settings → Integration**.                   |
+| Every page is 404                                               | Permalinks are set to "Plain", or the demo was not seeded (no front page).                                                                                            |
+| Preview says "not configured"                                   | `WSH_PREVIEW_SECRET` differs between WordPress and the website, or is shorter than 32 characters.                                                                     |
+| Images do not load                                              | `WORDPRESS_MEDIA_HOST` is wrong; it is read at build time, so restart `pnpm dev` or rebuild after changing it.                                                        |
 
 Next: rebrand the site with [REBRANDING.md](REBRANDING.md), and give your client [CLIENT-GUIDE.md](CLIENT-GUIDE.md).

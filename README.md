@@ -25,7 +25,7 @@ packages/wp-plugin/  WebSage Headless Core (WordPress plugin, PHP 8.1+)
 packages/contracts/  shared schemas and fixtures for the API between them
 ```
 
-Requirements: Node.js 24, pnpm 12 (via Corepack), WordPress 7.1.3+ on PHP 8.1+ over HTTPS (DDEV for local development).
+Requirements: Node.js 24, pnpm 12, WordPress 7.1.3+ on PHP 8.1+ over HTTPS (DDEV for local development).
 
 ## Licence
 
