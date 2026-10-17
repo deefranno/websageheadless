@@ -91,6 +91,9 @@ test('preview shows unpublished changes only to the previewer', async ({
     .getByLabel('Heading')
     .first()
     .fill('Draft heading not yet published');
+  await canvas
+    .getByRole('textbox', { name: 'Add title' })
+    .fill(`${slug} draft title`);
   const previewLink = await page.evaluate(async () => {
     const { wp } = window as unknown as {
       wp: {
@@ -118,6 +121,8 @@ test('preview shows unpublished changes only to the previewer', async ({
   await expect(
     page.getByText('Preview: you are seeing unpublished changes.'),
   ).toBeVisible();
+  // The tab title follows the draft too.
+  await expect(page).toHaveTitle(new RegExp(`${slug} draft title`));
 
   // Visitors still see the published version.
   const visitor = await browser.newPage();
