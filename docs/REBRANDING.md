@@ -23,7 +23,7 @@ Contrast guard: if Text/Background, Text on primary/Primary or Text on muted/Mut
 
 Also check: **SEO** tab (organization name, title template, default sharing image), **Footer** (copyright, social links), **Contact** (email, phone, address), and **Appearance → Menus**.
 
-Changes reach the website within seconds (signed revalidation webhook). If they do not, see **WebSage → Diagnostics**.
+Changes reach the website within seconds (signed revalidation webhook). If they do not, see **WebSage Settings → Diagnostics**.
 
 ## 2. Optional: code defaults (token file)
 
