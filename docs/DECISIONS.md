@@ -136,3 +136,21 @@ Decision: `wp websage seed` upserts by `_wsh_seed_id`; a second run reports 0 cr
 ## ADR-020 — Metadata, sitemap and robots (Phase 4)
 
 Decision: `generateMetadata`, `sitemap.xml` and page bodies read CMS data at request time (after `connection()`), from the tag-cached fetchers, so builds never need WordPress. `robots.txt` is static: `FRONTEND_ORIGIN` must be set at build time for its `Sitemap:` line. The sitemap lists only routes without `noindex`. JSON-LD escapes `<`. Articles use the organization as author, because the API never exposes WordPress authors.
+
+## ADR-021 — Streamed metadata and Lighthouse measurement (Phase 5)
+
+Context: Lighthouse 13 (mobile, plain Android Chrome user agent) flags a missing meta description because Next.js 16 streams `generateMetadata` output into `<body>` for browsers; HTML-limited crawlers (Bingbot, facebookexternalhit, …) get it in `<head>`. Next.js documents that JavaScript-rendering crawlers such as Googlebot read streamed metadata correctly.
+Decision: keep the Next.js default (streaming). `htmlLimitedBots: /.*/` (blocking metadata for everyone) was measured: SEO 100 and Performance about +5, but in Next.js 16.4.2 with Cache Components and partial prefetching it made client RSC prefetch requests hang indefinitely on every page, holding server connections open. Lighthouse runs from `pnpm --filter @websage/web lighthouse` (median of 3) and is not part of CI, because scores depend heavily on the machine (benchmarkIndex 648–1350 during Phase 5).
+Alternatives: blocking metadata (rejected above); build-time metadata (needs WordPress at build, contradicts ADR-020).
+Consequences: Lighthouse SEO reports 91 locally; Performance 71–93 on this machine, below the ≥ 90 target. The owner decides whether to accept this and measure the deployed demo with PageSpeed Insights. Re-test `htmlLimitedBots` when Next.js is upgraded.
+
+## ADR-022 — Client code splitting and Zod in the browser (Phase 5)
+
+Decision: client-heavy sections load through a client-side `next/dynamic` boundary (`ContactFormLoader`), so their JavaScript downloads only on pages that render them while still being server-rendered. A server-side `next/dynamic` import of the section did not split the code under Turbopack (verified). Browser code imports `lib/zod-jitless.ts` before any schema module, so Zod never probes `new Function()` (the CSP has no `unsafe-eval`, and each probe was reported as a violation).
+Consequences: new client sections with large dependencies should follow the same loader pattern; tests that render such sections await them (`findBy…`).
+
+## ADR-023 — CMB2 callbacks own defaults and file IDs (Phase 5)
+
+Context: CMB2 skips a field's default when `escape_cb` is set, and skips its file handling (which stores `{field}_id`) when `sanitization_cb` is set. Every settings field sets both.
+Decision: the plugin's escape callbacks apply `val_or_default()`; the image sanitizer stores `{field}_id` itself, using the attachment ID resolved from the validated URL rather than the posted ID.
+Consequences: any new CMB2 field with custom callbacks gets the same behaviour by using the `Sanitize` helpers.

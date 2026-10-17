@@ -45,6 +45,7 @@ final class Hardening {
 		if ( $settings['disable_user_enumeration'] ) {
 			add_filter( 'rest_pre_dispatch', array( self::class, 'block_user_listing' ), 10, 3 );
 			add_action( 'template_redirect', array( self::class, 'block_author_archives' ), 1 );
+			add_filter( 'oembed_response_data', array( self::class, 'hide_oembed_author' ) );
 		}
 	}
 
@@ -137,7 +138,8 @@ final class Hardening {
 	}
 
 	/**
-	 * `rest_pre_dispatch`: anonymous visitors cannot list users.
+	 * `rest_pre_dispatch`: anonymous visitors cannot list users. Core matches
+	 * routes case-insensitively, so this check does too.
 	 *
 	 * @param mixed           $result  Result so far.
 	 * @param mixed           $server  Server.
@@ -146,10 +148,22 @@ final class Hardening {
 	 */
 	public static function block_user_listing( mixed $result, mixed $server, WP_REST_Request $request ): mixed {
 		unset( $server );
-		if ( null === $result && ! is_user_logged_in() && 1 === preg_match( '#^/wp/v2/users(?:/|$)#', $request->get_route() ) ) {
+		if ( null === $result && ! is_user_logged_in() && 1 === preg_match( '#^/wp/v2/users(?:/|$)#i', $request->get_route() ) ) {
 			return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to do that.', 'websage-headless' ), array( 'status' => 401 ) );
 		}
 		return $result;
+	}
+
+	/**
+	 * `oembed_response_data`: embeds do not name the author or link to the
+	 * (blocked) author archive.
+	 *
+	 * @param array<string, mixed> $data oEmbed response.
+	 * @return array<string, mixed>
+	 */
+	public static function hide_oembed_author( array $data ): array {
+		unset( $data['author_name'], $data['author_url'] );
+		return $data;
 	}
 
 	/**

@@ -60,3 +60,17 @@ Verified here (details in `docs/reports/phase-4-verification.md`): root lint/typ
 Not verified yet: CI on the branch (needs a push and a PR); DDEV.
 
 Next: push `feat/website-features`, open the PR, confirm CI, owner review of the Phase 4 gate, then Phase 5 (testing and hardening: axe, Lighthouse, security review, rebranding test).
+
+CI green on PR #2 after one fix (comment lines in the e2e environment file); owner merged Phase 4 on 2026-10-16.
+
+## Phase 5 — Testing and Hardening, implemented; awaiting gate review
+
+Plan: `docs/superpowers/plans/2026-10-16-testing-hardening.md`. Branch `feat/testing-hardening`. Report: `docs/reports/phase-5-verification.md`.
+
+Done: axe audit (WCAG 2.2 A/AA) of every page, width and interactive state; Lighthouse script (median of 3, mobile); security review of all 11 threat rows with new PHP and HTTP tests; rebranding test and `docs/REBRANDING.md`. Fixed: user enumeration via mixed-case REST routes and oEmbed; logos from WebSage Settings never reaching the site; spurious validation notice on every settings save; feature links outside the contrast guard; contact form JavaScript on every page; Zod CSP violation; generic seeded link text.
+
+Verified here: root lint/typecheck/test pass; PHPCS and PHPStan clean; PHP integration 72/72 in both CMB2 orders; Playwright 53/53 on a fresh seeded harness. Lighthouse: Accessibility 100, Best Practices 100, SEO 91, Performance 71–93 depending on run.
+
+Known issues / decisions for the owner: Lighthouse Performance and SEO below the ≥ 90 target locally (ADR-021); 8 build-time-only dependency advisories; DDEV and real screen readers not verified.
+
+Next: push `feat/testing-hardening`, open the PR, confirm CI, owner review of the Phase 5 gate, then Phase 6 (commercial packaging).

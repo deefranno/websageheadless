@@ -210,9 +210,9 @@ final class Seeder {
 	 */
 	private function pages( array $testimonials, int $cta ): array {
 		$features       = array(
-			array( 'Strategy', 'A clear plan built around your goals, your audience and your budget.', '/services' ),
-			array( 'Design', '<strong>Accessible</strong>, on-brand design that works on every screen.', '/services' ),
-			array( 'Development', 'Fast, secure websites your team can update in WordPress.', '/services' ),
+			array( 'Strategy', 'A clear plan built around your goals, your audience and your budget.', '/services', 'Our strategy service' ),
+			array( 'Design', '<strong>Accessible</strong>, on-brand design that works on every screen.', '/services', 'Our design service' ),
+			array( 'Development', 'Fast, secure websites your team can update in WordPress.', '/services', 'Our development service' ),
 		);
 		$feature_blocks = array_map(
 			static fn( array $f ) => self::parsed(
@@ -220,7 +220,8 @@ final class Seeder {
 				array(
 					'title' => $f[0],
 					'body'  => $f[1],
-					'link'  => self::link( 'Learn more', $f[2] ),
+					// Descriptive link text: identical "Learn more" links are ambiguous out of context.
+					'link'  => self::link( $f[3], $f[2] ),
 				)
 			),
 			$features
