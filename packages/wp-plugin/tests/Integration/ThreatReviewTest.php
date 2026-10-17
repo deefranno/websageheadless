@@ -14,6 +14,7 @@ use WebSage\HeadlessCore\Admin\Diagnostics;
 use WebSage\HeadlessCore\Admin\SubmissionsScreen;
 use WebSage\HeadlessCore\Preview\AdminLink;
 use WebSage\HeadlessCore\Security\Hardening;
+use WebSage\HeadlessCore\Support\Integration;
 use WebSage\HeadlessCore\Tests\Integration\Support\ApiTestCase;
 use WPDieException;
 use WP_REST_Request;
@@ -123,6 +124,15 @@ final class ThreatReviewTest extends ApiTestCase {
 		$this->assertStringNotContainsString( '<script', $html );
 		$this->assertStringNotContainsString( '<img', $html );
 		$this->assertStringContainsString( '&lt;script&gt;alert(1)&lt;/script&gt;', $html );
+	}
+
+	public function test_frontend_origin_needs_https_except_on_loopback(): void {
+		foreach ( array( 'https://www.example.com', 'https://www.example.com:8443', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000' ) as $origin ) {
+			$this->assertTrue( Integration::is_valid_origin( $origin ), $origin );
+		}
+		foreach ( array( 'http://www.example.com', 'http://localhost.evil.example', 'http://127.0.0.2', 'https://www.example.com/path', 'https://user@www.example.com', 'javascript:alert(1)', '' ) as $origin ) {
+			$this->assertFalse( Integration::is_valid_origin( $origin ), $origin );
+		}
 	}
 
 	/**

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace WebSage\HeadlessCore\Fields;
 
 use CMB2_Field;
+use WebSage\HeadlessCore\Support\Integration;
 
 /**
  * Every CMB2 field names one of these; none relies on CMB2 defaults.
@@ -96,7 +97,7 @@ final class Sanitize {
 	}
 
 	/**
-	 * Bare HTTPS origin (scheme, host, optional port).
+	 * Bare origin (scheme, host, optional port); see Integration::is_valid_origin().
 	 *
 	 * @param mixed      $value Submitted value.
 	 * @param mixed      $args  Field arguments.
@@ -107,10 +108,7 @@ final class Sanitize {
 		if ( '' === $value ) {
 			return '';
 		}
-		$parts = wp_parse_url( $value );
-		$ok    = is_array( $parts ) && 'https' === ( $parts['scheme'] ?? '' ) && ! empty( $parts['host'] )
-			&& array() === array_intersect_key( $parts, array_flip( array( 'user', 'pass', 'path', 'query', 'fragment' ) ) );
-		return $ok ? $value : self::reject( $field, __( 'must be an https:// origin without a path, such as https://www.example.com', 'websage-headless' ) );
+		return Integration::is_valid_origin( $value ) ? $value : self::reject( $field, __( 'must be an https:// origin without a path, such as https://www.example.com (http:// is accepted for localhost only)', 'websage-headless' ) );
 	}
 
 	/**
